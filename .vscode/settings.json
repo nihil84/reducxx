@@ -1,0 +1,14 @@
+{
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+
+    "cmake.debugConfig": {
+        "stopAtEntry": false,
+        "MIMode": "lldb",
+        "miDebuggerPath": "/Users/paolo/.vscode/extensions/ms-vscode.cpptools-0.21.0/debugAdapters/lldb/bin/lldb-mi",
+        "logging": {
+                "trace": true,
+                "engineLogging": true,
+                "traceResponse": true
+        }
+    }
+}

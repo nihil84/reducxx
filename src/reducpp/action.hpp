@@ -2,11 +2,11 @@
 #define REDUCPP_ACTION_HPP
 
 namespace reducpp {
-  class action;
+    class action;
 }
 
 class reducpp::action {
-  virtual int type() const = 0;  
+    virtual int type() const = 0;  
 };
 
 
