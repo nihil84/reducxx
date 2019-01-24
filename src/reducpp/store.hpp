@@ -44,7 +44,7 @@ S reducpp::store<S, A>::revert() {
   if (m_state.size() > 1) {
     m_state.pop();
   }
-  return top;
+  return std::move(top);
 }
 
 

@@ -23,7 +23,7 @@ mystate nop_reducer(const mystate& state, const myaction& action) {
     case myaction::INCREMENT: newstate.value++; break;
     case myaction::DECREMENT: newstate.value--; break;
   }
-  return newstate;
+  return std::move(newstate);
 }
 
 
