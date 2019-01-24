@@ -1,7 +1,6 @@
 #ifndef REDUCPP_STORE_H
 #define REDUCPP_STORE_H
 
-#include "action.hpp"
 #include <functional>
 #include <stack>
 

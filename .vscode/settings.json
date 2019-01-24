@@ -10,5 +10,6 @@
                 "engineLogging": true,
                 "traceResponse": true
         }
-    }
+    },
+    "C_Cpp.configurationWarnings": "Disabled"
 }

@@ -1,4 +1,6 @@
 #include "reducpp/store.hpp"
+#include "reducpp/action.hpp"
+#include "reducpp/composer.hpp"
 
 #include <iostream>
 
@@ -6,6 +8,10 @@ using namespace std;
 
 struct mystate {
     int value;
+};
+
+struct another_state {
+    int value2;
 };
 
 class myaction : public reducpp::action {
@@ -17,7 +23,7 @@ private:
     TYPE m_type;
 };
 
-mystate nop_reducer(const mystate& state, const myaction& action) {
+mystate dummy_reducer(const mystate& state, const myaction& action) {
     mystate newstate = state;
     switch (action.type()) {
         case myaction::INCREMENT: newstate.value++; break;
@@ -26,25 +32,32 @@ mystate nop_reducer(const mystate& state, const myaction& action) {
     return std::move(newstate);
 }
 
+another_state nop_reducer(const another_state& state, const myaction& action) {
+    another_state newstate = state;
+    return std::move(newstate);
+}
+
+
 
 int main(int argc, char* argv[]) {
 
     using namespace reducpp;
     
-    store<mystate, myaction> mystore(nop_reducer);
+    store<std::tuple<mystate, another_state>, myaction> mystore(
+        (composer<myaction, mystate, another_state>(dummy_reducer, nop_reducer)));
     
     mystore.dispatch(myaction(myaction::INCREMENT));
-    cout << "state: " << mystore.state().value << endl;
+    cout << "state: " << std::get<0>(mystore.state()).value << endl;
     mystore.dispatch(myaction(myaction::INCREMENT));
-    cout << "state: " << mystore.state().value << endl;
+    cout << "state: " << std::get<0>(mystore.state()).value << endl;
     mystore.dispatch(myaction(myaction::INCREMENT));
-    cout << "state: " << mystore.state().value << endl;
+    cout << "state: " << std::get<0>(mystore.state()).value << endl;
     mystore.dispatch(myaction(myaction::DECREMENT));
-    cout << "state: " << mystore.state().value << endl;
+    cout << "state: " << std::get<0>(mystore.state()).value << endl;
     
-    while (mystore.state().value > 1) {
+    while (std::get<0>(mystore.state()).value > 1) {
         mystore.revert();
-        cout << "state: " << mystore.state().value << endl;  
+        cout << "state: " << std::get<0>(mystore.state()).value << endl;  
     }
 
     return EXIT_SUCCESS;
