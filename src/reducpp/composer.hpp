@@ -2,42 +2,53 @@
 #define REDUCPP_COMPOSER_HPP
 
 #include <tuple>
-#include "store.hpp"
+#include <utility>
 
 namespace reducpp {
-    template <typename A, typename S, typename ...States>
+    template <class A, class ...Reducers>
     class composer;
 }
 
-template <typename A, typename S, typename ...States>
+template <class Reducer>
+struct reducer_traits;
+
+template <class Functor>
+struct reducer_traits : public reducer_traits<decltype(&Functor::operator())> {  };
+
+template <class T, class A, class S>
+struct reducer_traits<S(T::*)(const S&, const A&) const> {
+    typedef A action_t;
+    typedef S ret_t;
+    typedef S state_t;
+};
+
+template <class A, class ...Reducers>
 class reducpp::composer {
 public:
-    composer(const typename store<S, A>::reducer_t& a, const typename store<std::tuple<States...>, A>::reducer_t& b)
-        : m_a(a), m_b(b) { }
+    using ReducersTuple = std::tuple<std::decay_t<Reducers> ...>;
+    using CompositeState = std::tuple<typename reducer_traits<Reducers>::ret_t ...>;
 
-    std::tuple<S, States...> operator() (const std::tuple<S, States...>& state, const A& action) {
-        S substate;
-        std::tuple<States...> remainder;
-        std::tie(substate, remainder) = state;
-        S newsubstate = m_a(substate, action);
-        return std::tuple_cat(std::tie(newsubstate), m_b(remainder, action));
+    composer(const Reducers& ...reducers)
+        : m_reducers(reducers...) { }
+
+    CompositeState operator() (const CompositeState& state, const A& action) {
+        return apply(state, action, std::index_sequence_for<Reducers...>{});
+    }
+
+    template <std::size_t ...Is>
+    CompositeState apply(const CompositeState& state, const A& action, std::index_sequence<Is...>) {
+        return { std::get<Is>(m_reducers)(std::get<Is>(state), action) ... };
     }
 
 private:
-    const typename store<S, A>::reducer_t m_a;
-    const typename store<std::tuple<States...>, A>::reducer_t m_b;
+    const ReducersTuple m_reducers;
 };
 
-
-template <typename A>
-struct compose {
-    template <typename S1, typename S2>
-    static reducpp::composer<A, S1, S2> of(const typename reducpp::store<S1, A>::reducer_t& first, 
-                                           const typename reducpp::store<S2, A>::reducer_t& second) {
-        return reducpp::composer<A, S1, S2>(first, 
-                [=](const std::tuple<S2>& s2, const A& a) -> S2 { 
-                    return { second(std::get<0>(s2), a)}; 
-                });                                    
+template <class A>
+struct reduce {
+    template <class ...Reducers>
+    static inline reducpp::composer<A, Reducers...> with(Reducers ...reducers) {
+        return reducpp::composer<A, Reducers...>(reducers...);
     }
 };
 

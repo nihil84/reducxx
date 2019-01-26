@@ -6,13 +6,6 @@
 
 using namespace std;
 
-struct mystate {
-    int value;
-};
-
-struct another_state {
-    int value2;
-};
 
 class myaction : public reducpp::action {
 public:
@@ -21,6 +14,22 @@ public:
     int type() const { return m_type; }
 private:
     TYPE m_type;
+};
+
+struct mystate {
+    int value;
+};
+
+struct mystate2 {
+    int value;
+};
+
+mystate2 reducer(const mystate2& state, const myaction& action) {
+    return { state.value +1 };
+}
+
+struct another_state {
+    int value2;
 };
 
 mystate dummy_reducer(const mystate& state, const myaction& action) {
@@ -43,8 +52,16 @@ int main(int argc, char* argv[]) {
 
     using namespace reducpp;
     
-    store<std::tuple<mystate, another_state>, myaction> mystore(
-        (compose<myaction>::of<mystate, another_state>(dummy_reducer, nop_reducer)));
+    function<mystate2(const mystate2&, const myaction&)> reducer2(reducer);
+
+
+    function<mystate(const mystate&, const myaction&)> dummy(dummy_reducer);
+    function<another_state(const another_state&, const myaction&)> nop(nop_reducer);
+
+
+    auto reducers = reduce<myaction>::with(dummy, nop, reducer2);
+ 
+    store<std::tuple<mystate, another_state, mystate2>, myaction> mystore(reducers);
     
     mystore.dispatch(myaction(myaction::INCREMENT));
     cout << "state: " << std::get<0>(mystore.state()).value << endl;
