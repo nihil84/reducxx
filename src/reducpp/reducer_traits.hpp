@@ -2,9 +2,15 @@
 namespace reducpp {
 namespace _impl {
 
-
 template<class F>
 struct reducer_traits;
+
+template<class S, class A>
+struct reducer_traits<S(const S&, const A&)>
+{
+    typedef A action_t;
+    typedef S state_t;
+};
  
 // function pointer
 template<class S, class A>
@@ -29,12 +35,24 @@ struct reducer_traits<F&> : public reducer_traits<F> {};
 // rvalue of functor
 template<class F>
 struct reducer_traits<F&&> : public reducer_traits<F> {};
- 
-template<class S, class A>
-struct reducer_traits<S(const S&, const A&)>
-{
-    typedef A action_t;
-    typedef S state_t;
-};
+
+// std::bind for object methods
+template<typename T, typename S, typename A, typename ...FArgs>
+#if defined _LIBCPP_VERSION  // libc++ (Clang)
+struct reducer_traits<std::__bind<S (T::*)(const S&, const A&), FArgs ...>>
+#elif defined _GLIBCXX_RELEASE  // glibc++ (GNU C++ >= 7.1)
+struct reducer_traits<std::_Bind<ReturnTypeT(ClassT::*(FArgs ...))(Args ...)>>
+#elif defined __GLIBCXX__  // glibc++ (GNU C++)
+struct reducer_traits<std::_Bind<std::_Mem_fn<ReturnTypeT (ClassT::*)(Args ...)>(FArgs ...)>>
+#elif defined _MSC_VER  // MS Visual Studio
+struct reducer_traits<
+  std::_Binder<std::_Unforced, ReturnTypeT(__cdecl ClassT::*)(Args ...), FArgs ...>
+>
+#else
+#error "Unsupported C++ compiler / standard library"
+#endif
+  : reducer_traits<S(const S&, const A&)>
+{};
+
 
 }}
