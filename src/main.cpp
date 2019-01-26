@@ -22,11 +22,11 @@ struct mystate {
 
 struct mystate2 {
     int value;
+    mystate2 reducer(const mystate2& state, const myaction& action) {
+        return { state.value +1 };
+    }
 };
 
-mystate2 reducer(const mystate2& state, const myaction& action) {
-    return { state.value +1 };
-}
 
 struct another_state {
     int value2;
@@ -52,16 +52,17 @@ int main(int argc, char* argv[]) {
 
     using namespace reducpp;
     
-    function<mystate2(const mystate2&, const myaction&)> reducer2(reducer);
+    mystate2 instance;
+    auto member_fun = std::bind(&mystate2::reducer, &instance);
 
 
     function<mystate(const mystate&, const myaction&)> dummy(dummy_reducer);
     function<another_state(const another_state&, const myaction&)> nop(nop_reducer);
 
 
-    auto reducers = reduce<myaction>::with(dummy, nop, reducer2);
+    auto reducers = reduce<myaction>::with(dummy, nop_reducer);
  
-    store<std::tuple<mystate, another_state, mystate2>, myaction> mystore(reducers);
+    store<std::tuple<mystate, another_state>, myaction> mystore(reducers);
     
     mystore.dispatch(myaction(myaction::INCREMENT));
     cout << "state: " << std::get<0>(mystore.state()).value << endl;

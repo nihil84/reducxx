@@ -3,30 +3,18 @@
 
 #include <tuple>
 #include <utility>
+#include "reducer_traits.hpp"
 
 namespace reducpp {
     template <class A, class ...Reducers>
     class composer;
 }
 
-template <class Reducer>
-struct reducer_traits;
-
-template <class Functor>
-struct reducer_traits : public reducer_traits<decltype(&Functor::operator())> {  };
-
-template <class T, class A, class S>
-struct reducer_traits<S(T::*)(const S&, const A&) const> {
-    typedef A action_t;
-    typedef S ret_t;
-    typedef S state_t;
-};
-
 template <class A, class ...Reducers>
 class reducpp::composer {
 public:
     using ReducersTuple = std::tuple<std::decay_t<Reducers> ...>;
-    using CompositeState = std::tuple<typename reducer_traits<Reducers>::ret_t ...>;
+    using CompositeState = std::tuple<typename reducpp::_impl::reducer_traits<Reducers>::state_t ...>;
 
     composer(const Reducers& ...reducers)
         : m_reducers(reducers...) { }
