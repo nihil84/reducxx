@@ -6,16 +6,16 @@
 
 
 namespace reducpp { 
-    template <typename S, typename A>
+    template <class S, class A>
     class store;
 }
 
-template <typename S, typename A>
+template <class S, class A>
 class reducpp::store {
 public:
     typedef std::function<S(const S&, const A&)> reducer_t;
     
-    template <typename F>
+    template <class F>
     store(const F& reducer) : m_reducer(reducer) {
         m_state.push(S());
     }
@@ -32,12 +32,12 @@ private:
 };
 
 
-template <typename S, typename A>
+template <class S, class A>
 void reducpp::store<S, A>::dispatch(const A& action) {
     m_state.push(m_reducer(m_state.top(), action));
 }
 
-template <typename S, typename A>
+template <class S, class A>
 S reducpp::store<S, A>::revert() {
     const S& top = m_state.top();
     if (m_state.size() > 1) {
