@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     using namespace reducpp;
     
     store<std::tuple<mystate, another_state>, myaction> mystore(
-        (composer<myaction, mystate, another_state>(dummy_reducer, nop_reducer)));
+        (compose<myaction>::of<mystate, another_state>(dummy_reducer, nop_reducer)));
     
     mystore.dispatch(myaction(myaction::INCREMENT));
     cout << "state: " << std::get<0>(mystore.state()).value << endl;

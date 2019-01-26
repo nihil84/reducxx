@@ -1,6 +1,4 @@
 {
-    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
-
     "cmake.debugConfig": {
         "stopAtEntry": false,
         "MIMode": "lldb",
