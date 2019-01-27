@@ -3,7 +3,8 @@
 
 #include "composer.hpp"
 #include <functional>
-#include <stack>
+#include <list>
+#include <vector>
 #include <tuple>
 
 
@@ -19,13 +20,14 @@ template <class S, class A>
 class reducpp::store {
 public:
     typedef std::function<S(const S&, const A&)> reducer_t;
+    typedef std::function<void()> callback_t;
     
     template <class F>
     store(const F& reducer) : m_reducer(reducer) {
-        m_state.push(S());
+        m_history.push_back(S());
     }
     
-    const S& state() const { return m_state.top(); }
+    const S& state() const { return m_history.back(); }
     
     template <size_t I>
     const std::tuple_element_t<I, S>& state() { return std::get<I>(state()); }
@@ -36,24 +38,31 @@ public:
     void dispatch(const A& action);
     
     bool revert();
+
+    template <class F>
+    void subscribe(const F& callback) { m_subscriptions.push_back(callback); }
   
 private:
     const reducer_t m_reducer;
-    std::stack<S> m_state;
+    std::list<S> m_history;
+    std::vector<callback_t> m_subscriptions;
 };
 
 
 template <class S, class A>
 void reducpp::store<S, A>::dispatch(const A& action) {
-    m_state.push(m_reducer(m_state.top(), action));
+    m_history.push_back(m_reducer(m_history.back(), action));
+    for (const callback_t& callback : m_subscriptions) {
+        callback();
+    }
 }
 
 template <class S, class A>
 bool reducpp::store<S, A>::revert() {
-    if (m_state.size() == 1) {
+    if (m_history.size() == 1) {
         return false;
     } else {
-        m_state.pop();
+        m_history.pop_back();
         return true;
     }
 }
