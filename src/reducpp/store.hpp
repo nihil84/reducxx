@@ -31,7 +31,7 @@ public:
 
     void dispatch(const A& action);
     
-    S revert();
+    bool revert();
   
 private:
     const reducer_t m_reducer;
@@ -45,12 +45,13 @@ void reducpp::store<S, A>::dispatch(const A& action) {
 }
 
 template <class S, class A>
-S reducpp::store<S, A>::revert() {
-    const S& top = m_state.top();
-    if (m_state.size() > 1) {
+bool reducpp::store<S, A>::revert() {
+    if (m_state.size() == 1) {
+        return false;
+    } else {
         m_state.pop();
+        return true;
     }
-    return std::move(top);
 }
 
 
