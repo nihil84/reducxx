@@ -1,3 +1,7 @@
+#ifndef REDUCPP_REDUCER_TRAITS_HPP
+#define REDUCPP_REDUCER_TRAITS_HPP
+
+#include <functional>
 
 namespace reducpp {
 namespace _impl {
@@ -54,3 +58,6 @@ struct reducer_traits<std::_Binder<std::_Unforced, S(__cdecl T::*)(const S&, con
 
 
 }}
+
+
+#endif // REDUCPP_REDUCER_TRAITS_HPP

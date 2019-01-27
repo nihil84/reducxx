@@ -8,6 +8,9 @@
 namespace reducpp {
     template <class A, class ...Reducers>
     class composer;
+
+    template <class A>
+    struct reduce;
 }
 
 template <class A, class ...Reducers>
@@ -33,10 +36,10 @@ private:
 };
 
 template <class A>
-struct reduce {
+struct reducpp::reduce {
     template <class ...Reducers>
-    static inline reducpp::composer<A, Reducers...> with(Reducers ...reducers) {
-        return reducpp::composer<A, Reducers...>(reducers...);
+    static inline composer<A, Reducers...> with(Reducers ...reducers) {
+        return composer<A, Reducers...>(reducers...);
     }
 };
 

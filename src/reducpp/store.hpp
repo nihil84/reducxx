@@ -1,6 +1,7 @@
 #ifndef REDUCPP_STORE_H
 #define REDUCPP_STORE_H
 
+#include "composer.hpp"
 #include <functional>
 #include <stack>
 #include <tuple>
@@ -9,6 +10,9 @@
 namespace reducpp { 
     template <class S, class A>
     class store;
+
+    template <class A>
+    struct store_factory;
 }
 
 template <class S, class A>
@@ -54,6 +58,13 @@ bool reducpp::store<S, A>::revert() {
     }
 }
 
-
+template <class A>
+struct reducpp::store_factory {
+    template <class ...Reducers>
+    static auto make_store(const Reducers& ...reducers) {
+        using CompositeState = typename composer<A, Reducers...>::CompositeState;
+        return store<CompositeState, A>(reduce<A>::with(reducers...));
+    }
+};
 
 #endif // REDUCPP_STORE_H
