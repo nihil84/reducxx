@@ -41,13 +41,11 @@ template<typename T, typename S, typename A, typename ...FArgs>
 #if defined _LIBCPP_VERSION  // libc++ (Clang)
 struct reducer_traits<std::__bind<S (T::*)(const S&, const A&), FArgs ...>>
 #elif defined _GLIBCXX_RELEASE  // glibc++ (GNU C++ >= 7.1)
-struct reducer_traits<std::_Bind<ReturnTypeT(ClassT::*(FArgs ...))(Args ...)>>
+struct reducer_traits<std::_Bind<S(T::*(FArgs ...))(const S&, const A&)>>
 #elif defined __GLIBCXX__  // glibc++ (GNU C++)
-struct reducer_traits<std::_Bind<std::_Mem_fn<ReturnTypeT (ClassT::*)(Args ...)>(FArgs ...)>>
+struct reducer_traits<std::_Bind<std::_Mem_fn<S(T::*)(const S&, const A&)>(FArgs ...)>>
 #elif defined _MSC_VER  // MS Visual Studio
-struct reducer_traits<
-  std::_Binder<std::_Unforced, ReturnTypeT(__cdecl ClassT::*)(Args ...), FArgs ...>
->
+struct reducer_traits<std::_Binder<std::_Unforced, S(__cdecl T::*)(const S&, const A&), FArgs ...>>
 #else
 #error "Unsupported C++ compiler / standard library"
 #endif
