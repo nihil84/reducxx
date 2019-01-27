@@ -73,9 +73,9 @@ int main(int argc, char* argv[]) {
     mystore.dispatch(myaction(myaction::INCREMENT));
     cout << "state: " << std::get<0>(mystore.state()).value << endl;
     mystore.dispatch(myaction(myaction::INCREMENT));
-    cout << "state: " << std::get<0>(mystore.state()).value << endl;
+    cout << "state: " << mystore.state<0>().value << endl;
     mystore.dispatch(myaction(myaction::INCREMENT));
-    cout << "state: " << std::get<0>(mystore.state()).value << endl;
+    cout << "state: " << mystore.state<mystate>().value << endl;
     mystore.dispatch(myaction(myaction::DECREMENT));
     cout << "state: " << std::get<0>(mystore.state()).value << endl;
     

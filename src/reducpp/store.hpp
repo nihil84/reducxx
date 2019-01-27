@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <stack>
+#include <tuple>
 
 
 namespace reducpp { 
@@ -22,6 +23,12 @@ public:
     
     const S& state() const { return m_state.top(); }
     
+    template <size_t I>
+    const std::tuple_element_t<I, S>& state() { return std::get<I>(state()); }
+
+    template <class T>
+    const T& state() { return std::get<T>(state()); }
+
     void dispatch(const A& action);
     
     S revert();
