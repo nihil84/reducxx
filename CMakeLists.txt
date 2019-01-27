@@ -10,6 +10,8 @@ add_executable(doctest
     test/doctest.cpp 
     test/reducpp/basics.cpp
     test/reducpp/composite_state.cpp
+    test/reducpp/copy_mng.cpp
+    test/reducpp/subscription.cpp
 )
 add_test(NAME ReduCppTest COMMAND doctest)
 set_target_properties(doctest PROPERTIES

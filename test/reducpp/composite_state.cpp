@@ -1,6 +1,5 @@
 #include <reducpp/store.hpp>
 #include <reducpp/action.hpp>
-#include <reducpp/composer.hpp>
 #include "../doctest.h"
 #include <vector>
 
@@ -58,9 +57,8 @@ TEST_CASE("composite state") {
 
     function<mystate1(const mystate1&, const myaction&)> dummy(dummy_reducer);
 
-    auto reducers = reduce<myaction>::with();
- 
- //   store<std::tuple<mystate1, mystate2, mystate3>, myaction> sut(reducers);
+//    auto reducers = reduce<myaction>::with(dummy, member_fun, nop_reducer);
+//    store<std::tuple<mystate1, mystate2, mystate3>, myaction> sut(reducers);
     auto sut = store_factory<myaction>::make_store(dummy, member_fun, nop_reducer);
 
     CHECK(sut.state<mystate1>().value == 0);
