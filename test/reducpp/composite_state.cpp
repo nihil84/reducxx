@@ -59,7 +59,7 @@ TEST_CASE("composite state") {
 
 //    auto reducers = reduce<myaction>::with(dummy, member_fun, nop_reducer);
 //    store<std::tuple<mystate1, mystate2, mystate3>, myaction> sut(reducers);
-    // short way (leverage template deduction to avoid to write the write verbose type of the store)
+    // short way (leverage template deduction to avoid to write the verbose type of the store)
     auto sut = store_factory<myaction>::make_store(
         dummy,          // functor from STL -> mystate1
         member_fun,     // standard binder result -> mystate2
