@@ -4,7 +4,20 @@ project(reducpp VERSION 0.1.0)
 include(CTest)
 enable_testing()
 
-add_executable(reducpp src/main.cpp)
+include_directories(src)
+
+add_executable(doctest 
+    test/doctest.cpp 
+    test/reducpp/basics.cpp
+    test/reducpp/composite_state.cpp
+    test/reducpp/copy_mng.cpp
+    test/reducpp/subscription.cpp
+)
+add_test(NAME ReduCppTest COMMAND doctest)
+set_target_properties(doctest PROPERTIES
+    CXX_STANDARD 17
+)
+
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
