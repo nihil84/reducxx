@@ -36,9 +36,8 @@ TEST_CASE("basic functionalities") {
         bool called = false;
         sut.subscribe([&]() { called = true; });
 
-        CHECK(sut.state().value == 0);
+        CHECK(!called);
         sut.dispatch(myaction(myaction::INCREMENT));
-        CHECK(sut.state().value == 1);
         CHECK(called);
     }
 
