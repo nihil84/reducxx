@@ -8,7 +8,7 @@ using namespace reducpp;
 
 
 
-TEST_CASE("basic functionalities") {
+TEST_CASE("subscriptions") {
 
     struct mystate {
         int value;
@@ -32,12 +32,12 @@ TEST_CASE("basic functionalities") {
         return std::move(newstate);
     });
 
-    SUBCASE("subscribe for state change events") {
+    SUBCASE("GIVEN a store and a subscriber WHEN an event is dispatched THEN the subscriber is being called") {
         bool called = false;
         sut.subscribe([&]() { called = true; });
 
         CHECK(!called);
-        sut.dispatch(myaction(myaction::INCREMENT));
+        sut.dispatch( { myaction::INCREMENT } );
         CHECK(called);
     }
 

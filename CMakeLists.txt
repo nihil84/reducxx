@@ -12,6 +12,7 @@ add_executable(doctest
     test/reducpp/composite_state.cpp
     test/reducpp/copy_mng.cpp
     test/reducpp/subscription.cpp
+    test/reducpp/concurrency.cpp
 )
 add_test(NAME ReduCppTest COMMAND doctest)
 set_target_properties(doctest PROPERTIES

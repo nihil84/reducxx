@@ -29,7 +29,7 @@ TEST_CASE("basic functionalities") {
         return std::move(newstate);
     });
 
-    SUBCASE("action dispatching") {
+    SUBCASE("GIVEN a store WHEN dispatching an event THEN the state is updated") {
         CHECK(sut.state().value == 0);
         sut.dispatch(myaction(myaction::INCREMENT));
         CHECK(sut.state().value == 1);
@@ -39,7 +39,7 @@ TEST_CASE("basic functionalities") {
         CHECK(sut.state().value == 1);
     }
 
-    SUBCASE("action reverting") {
+    SUBCASE("GIVEN a store with an history of N actions WHEN reverting THEN the state is rolled-back") {
         CHECK(sut.state().value == 0);
         sut.dispatch(myaction(myaction::INCREMENT));
         sut.dispatch(myaction(myaction::INCREMENT));

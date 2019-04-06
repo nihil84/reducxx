@@ -11,11 +11,11 @@
 namespace reducpp { 
     template <class S, class A>
     class store;
-
-    template <class A>
-    struct store_factory;
 }
 
+/**
+ * @brief Plain/basic ReduCpp store with no concurrency support.
+ */
 template <class S, class A>
 class reducpp::store {
 public:
@@ -27,21 +27,27 @@ public:
         m_history.push_back(S());
     }
     
-    const S& state() const { return m_history.back(); }
+    //! @brief Return a read-only reference to current state
+    virtual const S& state() const { return m_history.back(); }
     
+    //! @brief Return a read-only reference to the sub-state of index @a I in case @a S is a std::tuple
     template <size_t I>
     const std::tuple_element_t<I, S>& state() { return std::get<I>(state()); }
 
+    //! @brief Return a read-only reference to the sub-state of type @a T in case @a S is a std::tuple
     template <class T>
     const T& state() { return std::get<T>(state()); }
 
-    void dispatch(const A& action);
+    virtual void dispatch(const A& action);
     
-    bool revert();
+    virtual bool revert();
 
     template <class F>
     void subscribe(const F& callback) { m_subscriptions.push_back(callback); }
   
+protected:
+    virtual void perform_callbacks();
+
 private:
     const reducer_t m_reducer;
     std::list<S> m_history;
@@ -52,9 +58,7 @@ private:
 template <class S, class A>
 void reducpp::store<S, A>::dispatch(const A& action) {
     m_history.push_back(m_reducer(m_history.back(), action));
-    for (const callback_t& callback : m_subscriptions) {
-        callback();
-    }
+    perform_callbacks();
 }
 
 template <class S, class A>
@@ -67,13 +71,12 @@ bool reducpp::store<S, A>::revert() {
     }
 }
 
-template <class A>
-struct reducpp::store_factory {
-    template <class ...Reducers>
-    static auto make_store(const Reducers& ...reducers) {
-        using CompositeState = typename composer<A, Reducers...>::CompositeState;
-        return store<CompositeState, A>(reduce<A>::with(reducers...));
+template <class S, class A>
+void reducpp::store<S, A>::perform_callbacks()  {
+    for (const callback_t& callback : m_subscriptions) {
+        callback();
     }
-};
+}
+
 
 #endif // REDUCPP_STORE_H
