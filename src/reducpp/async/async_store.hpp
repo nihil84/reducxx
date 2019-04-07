@@ -2,6 +2,7 @@
 #define ASYNC_STORE_HPP
 
 #include "../store.hpp"
+#include "active_object.hpp"
 
 #include <thread>
 

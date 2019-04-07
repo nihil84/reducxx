@@ -7,7 +7,6 @@ using namespace std;
 using namespace reducpp;
 
 
-
 TEST_CASE("subscriptions") {
 
     struct mystate {
@@ -32,7 +31,9 @@ TEST_CASE("subscriptions") {
         return std::move(newstate);
     });
 
-    SUBCASE("GIVEN a store and a subscriber WHEN an event is dispatched THEN the subscriber is being called") {
+    GIVEN("a store and a subscriber") 
+    WHEN("an event is dispatched") 
+    THEN("the subscriber is being called") {
         bool called = false;
         sut.subscribe([&]() { called = true; });
 

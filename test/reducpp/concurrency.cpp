@@ -1,4 +1,5 @@
 #include <reducpp/store_factory.hpp>
+#include <reducpp/async/active_object.hpp>
 #include <reducpp/action.hpp>
 #include "../doctest.h"
 
@@ -45,6 +46,51 @@ TEST_CASE("creation and basic features" * doctest::may_fail()) {
 
         done.lock();    // wait for synchronization [1]
         CHECK(concurrent);
+    }
+}
+
+TEST_CASE("active object subsystem") {
+
+    GIVEN("the consumer function of an active_object")
+    WHEN("defined and used")
+    THEN("it is executed only after the reception of a request") {
+        bool executed = false;
+
+        active_object<event> sut([&](const event& evt) {
+            executed = true;
+        });
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        CHECK(!executed);
+
+        sut.schedule( { } );
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        CHECK(executed);
+    }
+
+    GIVEN("an active_object")
+    WHEN("scheduling a request")
+    THEN("it is executed on a separated thread") {
+        std::mutex mutex;
+        std::mutex done;
+        bool executed = false;
+
+        active_object<event> sut([&](const event& evt) {
+            mutex.lock();
+            executed = true;
+            done.unlock();
+        });
+
+        mutex.lock();
+        done.lock();
+        sut.schedule( { } );
+
+        CHECK(!executed); // not a deadlock
+
+        mutex.unlock();
+        done.lock();
+        CHECK(executed);
     }
 }
 

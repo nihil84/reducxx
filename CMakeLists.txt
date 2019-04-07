@@ -6,7 +6,11 @@ enable_testing()
 
 include_directories(src)
 
-add_executable(doctest 
+# Prepare doctest for other targets to use
+add_library(doctest INTERFACE)
+target_include_directories(doctest INTERFACE test/doctest.h)
+
+add_executable(ReduCppTest 
     test/doctest.cpp 
     test/reducpp/basics.cpp
     test/reducpp/composite_state.cpp
@@ -14,11 +18,13 @@ add_executable(doctest
     test/reducpp/subscription.cpp
     test/reducpp/concurrency.cpp
 )
-add_test(NAME ReduCppTest COMMAND doctest)
-set_target_properties(doctest PROPERTIES
+target_link_libraries(ReduCppTest doctest)
+set_target_properties(ReduCppTest PROPERTIES
     CXX_STANDARD 17
 )
 
+add_test(NAME Basics            COMMAND ReduCppTest --test-suite-exclude=concurrency)
+add_test(NAME Concurrency       COMMAND ReduCppTest --test-suite=concurrency)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
