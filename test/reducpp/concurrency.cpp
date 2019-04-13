@@ -63,7 +63,7 @@ TEST_CASE("active object subsystem") {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CHECK(!executed);
 
-        sut.schedule( { } );
+        sut.post( { } );
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CHECK(executed);
@@ -84,13 +84,40 @@ TEST_CASE("active object subsystem") {
 
         mutex.lock();
         done.lock();
-        sut.schedule( { } );
+        sut.post( { } );
 
         CHECK(!executed); // not a deadlock
 
         mutex.unlock();
         done.lock();
         CHECK(executed);
+    }
+
+    GIVEN("an active_object")
+    WHEN("the request handler throws")
+    THEN("the control-loop is not interrupted") {
+        int counter = 0;
+        std::timed_mutex mutex;
+        bool done = false;
+
+        active_object<event> sut([&](const event& evt) {
+            if (counter++ == 0) throw "an exception";
+            else {
+                done = true;
+                mutex.unlock();
+            }
+        });
+
+        std::future<void> result = sut.post( { } );
+        CHECK(!done); // no exception on this thread
+        
+        mutex.lock();
+        sut.post( { } );
+        CHECK(mutex.try_lock_for(std::chrono::milliseconds(500)));
+        CHECK(done);
+
+        CHECK(result.valid());
+        CHECK_THROWS(result.get());
     }
 }
 

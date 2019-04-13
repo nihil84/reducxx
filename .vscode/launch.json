@@ -8,7 +8,7 @@
             "name": "(lldb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/doctest",
+            "program": "${workspaceFolder}/build/ReduCppTest",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
