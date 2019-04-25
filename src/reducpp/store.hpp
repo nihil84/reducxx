@@ -32,6 +32,7 @@ class reducpp::store
     store(const store &) = delete;
     store &operator=(const store &) = delete;
 
+    //! Move constructor (used for store_factory facilities)
     store(store&& temp); 
 
     //! @brief Return a read-only reference to current state

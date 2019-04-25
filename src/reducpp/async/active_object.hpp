@@ -35,10 +35,12 @@ class reducpp::active_object
     template <typename F>
     active_object(const F &consumer)
         : m_consumer(consumer), m_worker(std::bind(&active_object<R>::run, this)), m_quit(false)
-    {
-    }
+    { }
 
     ~active_object();
+
+    active_object(const active_object&) = delete;
+    active_object& operator =(const active_object&) = delete;
 
     std::future<T> post(const R &request);
 

@@ -19,6 +19,8 @@ public:
     async_store(const F& reducer) : store<S, A>(reducer) { 
     }
 
+    
+
 private:
 
 };

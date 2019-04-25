@@ -14,6 +14,7 @@ namespace reducpp
     struct reduce;
 } // namespace reducpp
 
+//! @internal
 template <class A, class... Reducers>
 class reducpp::composer
 {
