@@ -24,7 +24,8 @@ struct mystate1 {
 struct mystate2 {
     int value;
     // declared here just to have a member function to use below
-    mystate2 reducer(const mystate2& state, const myaction& action) {
+    mystate2 reducer(const mystate2& state, const myaction& action) 
+    {
         return { state.value +1 };
     }
 };
@@ -33,20 +34,24 @@ struct mystate3 {
     std::vector<int> ints;
 };
 
-mystate1 dummy_reducer(const mystate1& state, const myaction& action) {
+mystate1 dummy_reducer(const mystate1& state, const myaction& action) 
+{
     mystate1 newstate = state;
-    switch (action.type()) {
+    switch (action.type()) 
+    {
         case myaction::INCREMENT: newstate.value++; break;
         case myaction::DECREMENT: newstate.value--; break;
     }
     return std::move(newstate);
 }
 
-mystate3 nop_reducer(const mystate3& state, const myaction& action) {
+mystate3 nop_reducer(const mystate3& state, const myaction& action) 
+{
     return { {3, 4, 5} };
 }
 
-int reducer_that_throws(const int& state, const myaction& action) {
+int reducer_that_throws(const int& state, const myaction& action) 
+{
     if (state == 2) 
     {
         throw "error";
@@ -54,9 +59,8 @@ int reducer_that_throws(const int& state, const myaction& action) {
     return state+1;
 }
 
-TEST_CASE("GIVEN a store with more than 1 reducer WHEN dispatching an event THEN the state is update accordingly") {
-
-
+TEST_CASE("composite store usage example") 
+{
     mystate2 instance;
     auto member_fun = std::bind(&mystate2::reducer, &instance, std::placeholders::_1, std::placeholders::_2);
 
@@ -82,12 +86,11 @@ TEST_CASE("GIVEN a store with more than 1 reducer WHEN dispatching an event THEN
     CHECK(sut.state<2>().ints.size() == 3);    
 }
 
-TEST_CASE("behavioural") {
-
-
+TEST_CASE("behavioural checks") 
+{
     GIVEN("a composite store")
     WHEN("a reducer throws")
-    THEN("the state is not updated")
+    THEN("whole state is not updated")
     {
         // store dispatch works as a transaction: if any of the reducers throws, the state is not updated (and no 
         // subscriber is notified).

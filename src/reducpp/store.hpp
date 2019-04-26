@@ -24,37 +24,37 @@ class reducpp::store
     typedef std::function<void()> callback_t;
 
     template <class F>
-    store(const F &reducer) : m_reducer(reducer)
+    store(const F& reducer) : m_reducer(reducer)
     {
         m_history.push_back(S());
     }
 
-    store(const store &) = delete;
-    store &operator=(const store &) = delete;
-
     //! Move constructor (used for store_factory facilities)
-    store(store&& temp); 
+    store(store&& temp) noexcept; 
+
+    store(const store&) = delete;
+    store& operator=(const store&) = delete;
 
     //! @brief Return a read-only reference to current state
-    virtual const S &state() const { return m_history.back(); }
+    virtual const S& state() const { return m_history.back(); }
 
     //! @brief Return a read-only reference to the sub-state of index @a I in case @a S is a std::tuple
     template <size_t I>
-    const std::tuple_element_t<I, S> &state() { return std::get<I>(state()); }
+    const std::tuple_element_t<I, S>& state() { return std::get<I>(state()); }
 
     //! @brief Return a read-only reference to the sub-state of type @a T in case @a S is a std::tuple
     template <class T>
-    const T &state() { return std::get<T>(state()); }
+    const T& state() { return std::get<T>(state()); }
 
-    virtual void dispatch(const A &action);
+    void dispatch(const A& action);
 
-    virtual bool revert();
+    bool revert();
 
     template <class F>
-    void subscribe(const F &callback) { m_subscriptions.push_back(callback); }
+    void subscribe(const F& callback) { m_subscriptions.push_back(callback); }
 
   protected:
-    virtual void perform_callbacks();
+    void perform_callbacks();
 
   private:
     const reducer_t m_reducer;
@@ -63,14 +63,14 @@ class reducpp::store
 };
 
 template <class S, class A>
-reducpp::store<S, A>::store(store&& temp) 
+reducpp::store<S, A>::store(store&& temp) noexcept
     : m_reducer(std::move(temp.m_reducer))
     , m_history(std::move(temp.m_history))
     , m_subscriptions(std::move(temp.m_subscriptions))
 { }
 
 template <class S, class A>
-void reducpp::store<S, A>::dispatch(const A &action)
+void reducpp::store<S, A>::dispatch(const A& action)
 {
     m_history.push_back(m_reducer(m_history.back(), action));
     perform_callbacks();

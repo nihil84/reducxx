@@ -29,3 +29,8 @@ add_test(NAME Concurrency       COMMAND ReduCppTest --test-suite=concurrency)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
+# COVERAGE
+include(code-coverage.cmake)
+
+target_code_coverage(ReduCppTest)

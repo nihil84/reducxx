@@ -9,5 +9,8 @@
                 "traceResponse": true
         }
     },
+    "cmake.configureSettings": {
+        "CODE_COVERAGE": "ON"
+    },
     "C_Cpp.configurationWarnings": "Disabled"
 }

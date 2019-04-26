@@ -12,7 +12,7 @@
 
 namespace reducpp
 {
-    template <class E, typename T = void>
+    template <class R, typename T = void>
     class active_object;
 }
 
@@ -27,14 +27,22 @@ class reducpp::active_object
     {
         std::promise<T> promise;
         const R request;
-        job(R &&request) : request(std::move(request)) {}
+        job(const R& request) : request(request) { }
+        job(R&& request) noexcept : request(std::move(request)) { }
     };
 
-    typedef std::function<T(const R &)> consumer;
+    typedef std::function<T(const R&)> consumer;
 
     template <typename F>
-    active_object(const F &consumer)
+    active_object(const F& consumer)
         : m_consumer(consumer), m_worker(std::bind(&active_object<R>::run, this)), m_quit(false)
+    { }
+
+    active_object(active_object&& temp) noexcept
+        : m_queue(std::move(temp.m_queue))
+        , m_worker(std::move(temp.m_worker))
+        , m_consumer(std::move(temp.m_consumer))
+        , m_quit(false)
     { }
 
     ~active_object();
@@ -42,9 +50,9 @@ class reducpp::active_object
     active_object(const active_object&) = delete;
     active_object& operator =(const active_object&) = delete;
 
-    std::future<T> post(const R &request);
+    std::future<T> post(const R& request);
 
-    std::future<T> post(R &&request);
+    std::future<T> post(R&& request);
 
     void shutdown();
 
@@ -53,7 +61,6 @@ class reducpp::active_object
     std::mutex m_mutex;
     std::condition_variable m_available;
     std::thread m_worker;
-    std::exception_ptr m_abort_ex;
     consumer m_consumer;
     bool m_quit;
 
@@ -61,8 +68,8 @@ class reducpp::active_object
 };
 
 template <class R, typename T>
-void execute(const typename reducpp::active_object<R, T>::consumer &consumer,
-             typename reducpp::active_object<R, T>::job &j)
+void execute(const typename reducpp::active_object<R, T>::consumer& consumer,
+             typename reducpp::active_object<R, T>::job& j)
 {
     try
     {
@@ -75,8 +82,8 @@ void execute(const typename reducpp::active_object<R, T>::consumer &consumer,
 }
 
 template <class R>
-void execute(const typename reducpp::active_object<R, void>::consumer &consumer,
-             typename reducpp::active_object<R, void>::job &j)
+void execute(const typename reducpp::active_object<R, void>::consumer& consumer,
+             typename reducpp::active_object<R, void>::job& j)
 {
     try
     {
@@ -107,7 +114,7 @@ void reducpp::active_object<R, T>::shutdown()
 }
 
 template <class R, typename T>
-std::future<T> reducpp::active_object<R, T>::post(const R &request)
+std::future<T> reducpp::active_object<R, T>::post(const R& request)
 {
     std::future<T> retv;
     {
@@ -120,7 +127,7 @@ std::future<T> reducpp::active_object<R, T>::post(const R &request)
 }
 
 template <class R, typename T>
-std::future<T> reducpp::active_object<R, T>::post(R &&request)
+std::future<T> reducpp::active_object<R, T>::post(R&& request)
 {
     std::future<T> retv;
     {
