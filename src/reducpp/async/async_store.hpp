@@ -37,6 +37,16 @@ public:
     std::future<void> dispatch(const A& action);
     std::future<void> dispatch(A&& action);
 
+    /**
+     * @brief Add given function or function to the store subscriptions for state change.
+     * Subscriptions will run on the store private thread and are then synchronous to the state change.
+     */ 
+    template <class F>
+    void subscribe_synch(const F& callback) { m_store.subscribe(callback); }
+
+    template <class F>
+    void subscribe_asynch();
+
 private:
     store<S, A> m_store;
     active_object<void> m_worker;

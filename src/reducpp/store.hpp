@@ -2,6 +2,7 @@
 #define REDUCPP_STORE_H
 
 #include "composer.hpp"
+#include "store_subscriptions_error.hpp"
 #include <functional>
 #include <list>
 #include <vector>
@@ -38,11 +39,13 @@ class reducpp::store
     //! @brief Return a read-only reference to current state
     virtual const S& state() const { return m_history.back(); }
 
-    //! @brief Return a read-only reference to the sub-state of index @a I in case @a S is a std::tuple
+    //! @brief Return a read-only reference to the sub-state of index @a I in 
+    //! case @a S is a std::tuple
     template <size_t I>
     const std::tuple_element_t<I, S>& state() { return std::get<I>(state()); }
 
-    //! @brief Return a read-only reference to the sub-state of type @a T in case @a S is a std::tuple
+    //! @brief Return a read-only reference to the sub-state of type @a T in 
+    //! case @a S is a std::tuple
     template <class T>
     const T& state() { return std::get<T>(state()); }
 
@@ -50,8 +53,15 @@ class reducpp::store
 
     bool revert();
 
+    /**
+     * @brief Subscribe given @a callback to be called at each state change.
+     * If any of the callbacks throws, the exception is put in stasis until all
+     * the subscriptions are run, then a special @a umbrella exception will be
+     * thrown storing a list of all exceptions 
+     */
     template <class F>
-    void subscribe(const F& callback) { m_subscriptions.push_back(callback); }
+    void subscribe(const F& callback)
+    { m_subscriptions.push_back(callback); }
 
   protected:
     void perform_callbacks();
@@ -93,9 +103,24 @@ bool reducpp::store<S, A>::revert()
 template <class S, class A>
 void reducpp::store<S, A>::perform_callbacks()
 {
-    for (const callback_t &callback : m_subscriptions)
+    std::vector<store_subscriptions_error::error> exceptions;
+    int idx = 0;
+    for (const callback_t& callback : m_subscriptions)
     {
-        callback();
+        try 
+        {
+            callback();
+        } 
+        catch (...) 
+        {
+            exceptions.push_back(std::make_pair(idx, std::current_exception()));
+        }
+        ++idx;
+    }
+
+    if (!exceptions.empty())
+    {
+        throw store_subscriptions_error(std::move(exceptions));
     }
 }
 

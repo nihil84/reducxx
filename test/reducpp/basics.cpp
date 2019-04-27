@@ -89,4 +89,29 @@ TEST_CASE("basic functionalities")
         CHECK_THROWS(sut.dispatch( { myaction::THROW } ));
         CHECK(sut.state().value == 1);
     }
+
+    GIVEN("a store")
+    WHEN("a subscriber throws")
+    THEN("state is correctly updated and following subscribers run anyway")
+    {
+        bool run_anyway = false;
+        bool got_exception = false;
+        CHECK(sut.state().value == 0);
+        sut.subscribe( []() { throw "error"; });
+        sut.subscribe( [&]() { run_anyway = true; });
+        try 
+        {
+            sut.dispatch( { myaction::INCREMENT });
+        }
+        catch (reducpp::store_subscriptions_error& ex) 
+        {
+            CHECK(ex.errors().size() == 1);
+            CHECK(ex.errors()[0].first == 0);
+            CHECK_THROWS_AS(std::rethrow_exception(ex.errors()[0].second), const char*);
+            got_exception = true;
+        }
+        CHECK(sut.state().value == 1);
+        CHECK(got_exception);
+        CHECK(run_anyway);
+    }
 }
