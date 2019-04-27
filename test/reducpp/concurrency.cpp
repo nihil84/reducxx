@@ -56,14 +56,12 @@ TEST_CASE("active object subsystem") {
     THEN("it is executed only after the reception of a request") {
         bool executed = false;
 
-        active_object<event> sut([&](const event& evt) {
-            executed = true;
-        });
+        active_object<> sut;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CHECK(!executed);
 
-        sut.post( { } );
+        sut.post( [&]() { executed = true; });
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CHECK(executed);
@@ -76,15 +74,15 @@ TEST_CASE("active object subsystem") {
         std::mutex done;
         bool executed = false;
 
-        active_object<event> sut([&](const event& evt) {
+        active_object<> sut;
+
+        mutex.lock();
+        done.lock();
+        sut.post( [&]() {
             mutex.lock();
             executed = true;
             done.unlock();
         });
-
-        mutex.lock();
-        done.lock();
-        sut.post( { } );
 
         CHECK(!executed); // not a deadlock
 
@@ -96,25 +94,23 @@ TEST_CASE("active object subsystem") {
     GIVEN("an active_object")
     WHEN("the request handler throws")
     THEN("the control-loop is not interrupted") {
-        int counter = 0;
         std::timed_mutex mutex;
         bool done = false;
 
-        active_object<event> sut([&](const event& evt) {
-            if (counter++ == 0) throw "an exception";
-            else {
-                done = true;
-                mutex.unlock();
-            }
-        });
+        active_object<> sut;
 
-        std::future<void> result = sut.post( { } );
-        CHECK(!done); // no exception on this thread
+        std::future<void> result = sut.post( []() {
+            throw "an exception";
+        });
+        CHECK(!done);   // no exception on this thread
         
         mutex.lock();
-        sut.post( { } );
+        sut.post( [&]() { 
+            done = true;
+            mutex.unlock();
+        });
         CHECK(mutex.try_lock_for(std::chrono::milliseconds(500)));
-        CHECK(done);
+        CHECK(done);    // active_object is still working
 
         CHECK(result.valid());
         CHECK_THROWS(result.get());

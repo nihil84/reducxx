@@ -18,7 +18,6 @@ public:
     template <class F>
     async_store(const F& reducer) 
         : m_store(reducer)
-        , m_worker(std::bind(&async_store::do_dispatch, this, std::placeholders::_1)) 
     { }
 
     async_store(async_store&& temp) noexcept
@@ -35,16 +34,25 @@ public:
      * The returned future can be ignored but, in case of exception, it will pass undetected:
      * If a reducer throws, the exception is bounded to the future an rethrown on future.get(), state is left unchanged.
      */
-    std::future<void> dispatch(const A& action) { return m_worker.post(action); }
-    std::future<void> dispatch(A&& action) { return m_worker.post(std::move(action)); }
+    std::future<void> dispatch(const A& action);
+    std::future<void> dispatch(A&& action);
 
 private:
     store<S, A> m_store;
-    active_object<A, void> m_worker;
+    active_object<void> m_worker;
 
     void do_dispatch(const A& action);
 };
 
+template <class S, class A>
+std::future<void> reducpp::async_store<S, A>::dispatch(const A& action) {
+    return m_worker.post(std::bind(&async_store<S, A>::do_dispatch, this, action));
+}
+
+template <class S, class A>
+std::future<void> reducpp::async_store<S, A>::dispatch(A&& action) {
+    return m_worker.post(std::bind(&async_store<S, A>::do_dispatch, this, std::move(action)));
+}
 
 template <class S, class A>
 void reducpp::async_store<S, A>::do_dispatch(const A& action)

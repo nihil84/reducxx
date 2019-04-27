@@ -12,36 +12,36 @@
 
 namespace reducpp
 {
-    template <class R, typename T = void>
+    template <class R = void>
     class active_object;
 }
 
 /**
  * @brief A more or less canonical implementation of the Active Object pattern.
  */
-template <class R, typename T>
+template <class R>
 class reducpp::active_object
 {
   public:
+    typedef std::function<R()> job_op;
+
     struct job
     {
-        std::promise<T> promise;
-        const R request;
-        job(const R& request) : request(request) { }
-        job(R&& request) noexcept : request(std::move(request)) { }
+        std::promise<R> promise;
+        job_op operation;
+        template <class F>
+        job(const F& operation) : operation(operation) { }
+        template <class F>
+        job(F&& operation) noexcept : operation(std::move(operation)) { }
     };
 
-    typedef std::function<T(const R&)> consumer;
-
-    template <typename F>
-    active_object(const F& consumer)
-        : m_consumer(consumer), m_worker(std::bind(&active_object<R>::run, this)), m_quit(false)
+    active_object()
+        : m_worker(std::bind(&active_object<R>::run, this)), m_quit(false)
     { }
 
     active_object(active_object&& temp) noexcept
         : m_queue(std::move(temp.m_queue))
         , m_worker(std::move(temp.m_worker))
-        , m_consumer(std::move(temp.m_consumer))
         , m_quit(false)
     { }
 
@@ -50,9 +50,11 @@ class reducpp::active_object
     active_object(const active_object&) = delete;
     active_object& operator =(const active_object&) = delete;
 
-    std::future<T> post(const R& request);
+    template <class F>
+    std::future<R> post(const F& operation);
 
-    std::future<T> post(R&& request);
+    template <class F>
+    std::future<R> post(F&& operation);
 
     void shutdown();
 
@@ -61,19 +63,17 @@ class reducpp::active_object
     std::mutex m_mutex;
     std::condition_variable m_available;
     std::thread m_worker;
-    consumer m_consumer;
     bool m_quit;
 
     void run();
 };
 
-template <class R, typename T>
-void execute(const typename reducpp::active_object<R, T>::consumer& consumer,
-             typename reducpp::active_object<R, T>::job& j)
+template <class T>
+static void execute(typename reducpp::active_object<T>::job& j)
 {
     try
     {
-        j.promise.set_value(consumer(j.request));
+        j.promise.set_value(j.operation());
     }
     catch (...)
     {
@@ -81,13 +81,12 @@ void execute(const typename reducpp::active_object<R, T>::consumer& consumer,
     }
 }
 
-template <class R>
-void execute(const typename reducpp::active_object<R, void>::consumer& consumer,
-             typename reducpp::active_object<R, void>::job& j)
+template <>
+void execute<void>(typename reducpp::active_object<void>::job& j)
 {
     try
     {
-        consumer(j.request);
+        j.operation();
         j.promise.set_value();
     }
     catch (...)
@@ -96,15 +95,15 @@ void execute(const typename reducpp::active_object<R, void>::consumer& consumer,
     }
 }
 
-template <class R, typename T>
-reducpp::active_object<R, T>::~active_object()
+template <class R>
+reducpp::active_object<R>::~active_object()
 {
     shutdown();
     m_worker.join();
 }
 
-template <class R, typename T>
-void reducpp::active_object<R, T>::shutdown()
+template <class R>
+void reducpp::active_object<R>::shutdown()
 {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -113,34 +112,36 @@ void reducpp::active_object<R, T>::shutdown()
     m_available.notify_one();
 }
 
-template <class R, typename T>
-std::future<T> reducpp::active_object<R, T>::post(const R& request)
+template <class R>
+template <class F>
+std::future<R> reducpp::active_object<R>::post(const F& operation)
 {
-    std::future<T> retv;
+    std::future<R> retv;
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_queue.push(job(request));
+        m_queue.push(job(operation));
         retv = m_queue.back().promise.get_future();
     }
     m_available.notify_one();
     return std::move(retv);
 }
 
-template <class R, typename T>
-std::future<T> reducpp::active_object<R, T>::post(R&& request)
+template <class R>
+template <class F>
+std::future<R> reducpp::active_object<R>::post(F&& operation)
 {
-    std::future<T> retv;
+    std::future<R> retv;
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_queue.push(job(std::move(request)));
+        m_queue.push(job(std::move(operation)));
         retv = m_queue.back().promise.get_future();
     }
     m_available.notify_one();
     return std::move(retv);
 }
 
-template <class R, typename T>
-void reducpp::active_object<R, T>::run()
+template <class R>
+void reducpp::active_object<R>::run()
 {
     for (;;)
     {
@@ -158,13 +159,12 @@ void reducpp::active_object<R, T>::run()
         lock.unlock();
         try
         {
-            execute<R>(m_consumer, j);
+            execute<R>(j);
         }
         catch (...)
         {
-            std::throw_with_nested(exception_handling_error<R>(
-                "unable to properly handle exception in thread, aborted",
-                j.request));
+            std::throw_with_nested(exception_handling_error(
+                "unable to properly handle exception in thread, aborted"));
         }
     }
 }
