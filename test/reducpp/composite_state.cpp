@@ -42,7 +42,7 @@ mystate1 dummy_reducer(const mystate1& state, const myaction& action)
         case myaction::INCREMENT: newstate.value++; break;
         case myaction::DECREMENT: newstate.value--; break;
     }
-    return std::move(newstate);
+    return newstate;
 }
 
 mystate3 nop_reducer(const mystate3& state, const myaction& action) 

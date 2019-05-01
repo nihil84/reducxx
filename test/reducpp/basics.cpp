@@ -41,7 +41,7 @@ TEST_CASE("basic functionalities")
         case myaction::THROW:
             throw "error";
         }
-        return std::move(newstate);
+        return newstate;
     });
 
     GIVEN("a store")

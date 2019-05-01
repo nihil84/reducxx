@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.8.0)
 project(reducpp VERSION 0.1.0)
 
 include(CTest)
@@ -10,7 +10,16 @@ include_directories(src)
 add_library(doctest INTERFACE)
 target_include_directories(doctest INTERFACE test/doctest.h)
 
-add_executable(ReduCppTest 
+add_executable(ReduCppTest
+    src/reducpp/action.hpp
+    src/reducpp/composer.hpp
+    src/reducpp/reducer_traits.hpp
+    src/reducpp/store_factory.hpp
+    src/reducpp/store_subscriptions_error.hpp
+    src/reducpp/store.hpp
+    src/reducpp/async/active_object.hpp
+    src/reducpp/async/async_store.hpp
+    src/reducpp/async/exception_handling_error.hpp
     test/doctest.cpp 
     test/reducpp/basics.cpp
     test/reducpp/composite_state.cpp
@@ -31,6 +40,6 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 # COVERAGE
-include(code-coverage.cmake)
+#include(code-coverage.cmake)
 
-target_code_coverage(ReduCppTest)
+#target_code_coverage(ReduCppTest)

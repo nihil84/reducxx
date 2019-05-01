@@ -28,7 +28,7 @@ TEST_CASE("subscriptions") {
             case myaction::INCREMENT: newstate.value++; break;
             case myaction::DECREMENT: newstate.value--; break;
         }
-        return std::move(newstate);
+        return newstate;
     });
 
     GIVEN("a store and a subscriber") 
