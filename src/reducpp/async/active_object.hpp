@@ -123,7 +123,7 @@ std::future<R> reducpp::active_object<R>::post(const F& operation)
         retv = m_queue.back().promise.get_future();
     }
     m_available.notify_one();
-    return std::move(retv);
+    return retv;
 }
 
 template <class R>
@@ -137,7 +137,7 @@ std::future<R> reducpp::active_object<R>::post(F&& operation)
         retv = m_queue.back().promise.get_future();
     }
     m_available.notify_one();
-    return std::move(retv);
+    return retv;
 }
 
 template <class R>
