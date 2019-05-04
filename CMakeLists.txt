@@ -39,6 +39,6 @@ set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
 # COVERAGE
-#include(code-coverage.cmake)
+include(code-coverage.cmake)
 
-#target_code_coverage(ReduCppTest)
+target_code_coverage(ReduCppTest EXCLUDE test/*)

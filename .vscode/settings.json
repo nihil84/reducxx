@@ -1,4 +1,5 @@
 {
+    "cmake.generator": "Unix Makefiles",
     "cmake.debugConfig": {
         "stopAtEntry": false,
         "MIMode": "lldb",
@@ -11,5 +12,6 @@
     "cmake.configureSettings": {
         "CODE_COVERAGE": "ON"
     },
-    "C_Cpp.configurationWarnings": "Disabled"
+    "C_Cpp.configurationWarnings": "Disabled",
+    "coverage-gutters.lcovname": "build/ccov/lcov.info"
 }

@@ -81,6 +81,7 @@ option(
 
 # Programs
 find_program(LLVM_COV_PATH llvm-cov)
+find_program(LLVM_PROFDATA_PATH llvm-profdata)
 find_program(LCOV_PATH lcov)
 find_program(GENHTML_PATH genhtml)
 
@@ -257,6 +258,18 @@ function(target_code_coverage TARGET_NAME)
                                   -instr-profile=${TARGET_NAME}.profdata
                                   ${EXCLUDE_REGEX}
                           DEPENDS ccov-processing-${TARGET_NAME})
+
+        # ~~~ By nihil84
+        # I added the following target to generate lcov coverage data for   
+        # integration with vscode on macos (coverage-gutters)
+        add_custom_target(ccov-lcov-${TARGET_NAME}
+                          COMMAND llvm-cov export ${TARGET_NAME}
+                                  -format=lcov
+                                  -instr-profile=${TARGET_NAME}.profdata
+                                  ${EXCLUDE_REGEX}
+                                  > ${CMAKE_COVERAGE_OUTPUT_DIRECTORY}/lcov.info
+                          DEPENDS ccov-processing-${TARGET_NAME})
+        # ~~~ End of nihil84 addition
 
         add_custom_target(
           ccov-${TARGET_NAME}
