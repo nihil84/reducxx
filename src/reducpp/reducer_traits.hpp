@@ -49,7 +49,7 @@ struct reducer_traits<std::_Bind<S(T::*(FArgs ...))(const S&, const A&)>>
 #elif defined __GLIBCXX__  // glibc++ (GNU C++)
 struct reducer_traits<std::_Bind<std::_Mem_fn<S(T::*)(const S&, const A&)>(FArgs ...)>>
 #elif defined _MSC_VER  // MS Visual Studio
-struct reducer_traits<std::_Binder<std::_Unforced, S(__cdecl T::*)(const S&, const A&), FArgs ...>>
+struct reducer_traits<std::_Binder<std::_Unforced, S(__thiscall T::*)(const S&, const A&), FArgs ...>>
 #else
 #error "Unsupported C++ compiler / standard library"
 #endif

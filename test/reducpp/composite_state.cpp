@@ -86,6 +86,24 @@ TEST_CASE("composite store usage example")
     CHECK(sut.state<2>().ints.size() == 3);    
 }
 
+
+TEST_CASE("lambdas")
+{
+    mystate2 instance;
+    std::function<mystate1(const mystate1&, const myaction&)> dummy(dummy_reducer);
+
+    auto sut = store_factory<myaction>::make(
+            [&](const mystate2& state, const myaction& action)  { return instance.reducer(state, action); },
+            nop_reducer
+    );
+
+    CHECK(sut.state<mystate2>().value == 0);
+    CHECK(sut.state<mystate3>().ints.size() == 0);
+    sut.dispatch( { myaction::DECREMENT } );
+    CHECK(sut.state<0>().value == 1);
+    CHECK(sut.state<1>().ints.size() == 3);
+}
+
 TEST_CASE("behavioural checks") 
 {
     GIVEN("a composite store")
