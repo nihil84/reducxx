@@ -20,6 +20,7 @@ class event {
 
 };
 
+
 TEST_CASE("creation and basic features" * doctest::may_fail()) {
 
     GIVEN("an async store") 
@@ -27,29 +28,28 @@ TEST_CASE("creation and basic features" * doctest::may_fail()) {
     THEN("it is processed on a separated thread") {
 
         std::chrono::milliseconds interval(500);
-        std::mutex mutex;
-        std::mutex done;
+        std::promise<bool> before;
+        std::promise<void> after;
 
         bool concurrent = false;
 
         auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+            concurrent = before.get_future().get();     // wait for synchronization [2]
             std::this_thread::sleep_for(interval);
-            concurrent = mutex.try_lock();  // wait for synchronization [2]
-            done.unlock();                  // synchronization [1]
+            after.set_value();                          // synchronization [1]
             return { };
         });
 
-        done.lock();    // pre-lock the mutex unlocked by the reducer to wait for synchronization [1]
-        mutex.lock();   // pre-lock the mutex that the reducer waits for synchronization [2]
         sut.dispatch( {} );
-        mutex.unlock(); // synchronization [2]
+        before.set_value(true);                    // synchronization [2]
 
-        done.lock();    // wait for synchronization [1]
-        CHECK(concurrent);
+        CHECK(after.get_future().wait_for(interval*2) == std::future_status::ready);
+        CHECK(concurrent);                              // synchronization [1]
     }
 }
 
 TEST_CASE("active object subsystem") {
+
 
     GIVEN("the consumer function of an active_object")
     WHEN("defined and used")
@@ -70,31 +70,31 @@ TEST_CASE("active object subsystem") {
     GIVEN("an active_object")
     WHEN("scheduling a request")
     THEN("it is executed on a separated thread") {
-        std::mutex mutex;
-        std::mutex done;
+        std::promise<void> before;
+        std::promise<void> after;
         bool executed = false;
 
-        active_object<> sut;
+        active_object<>* sut = new active_object<>();
 
-        mutex.lock();
-        done.lock();
-        sut.post( [&]() {
-            mutex.lock();
+        sut->post( [&]() {
+            before.get_future().wait();
             executed = true;
-            done.unlock();
+            after.set_value();
         });
 
         CHECK(!executed); // not a deadlock
 
-        mutex.unlock();
-        done.lock();
+        before.set_value();
+        after.get_future().wait();
         CHECK(executed);
+
+        delete sut;
     }
 
     GIVEN("an active_object")
     WHEN("the request handler throws")
     THEN("the control-loop is not interrupted") {
-        std::timed_mutex mutex;
+        std::promise<void> mutex;
         bool done = false;
 
         active_object<> sut;
@@ -103,13 +103,12 @@ TEST_CASE("active object subsystem") {
             throw "an exception";
         });
         CHECK(!done);   // no exception on this thread
-        
-        mutex.lock();
+
         sut.post( [&]() { 
             done = true;
-            mutex.unlock();
+            mutex.set_value();
         });
-        CHECK(mutex.try_lock_for(std::chrono::milliseconds(500)));
+        CHECK(mutex.get_future().wait_for(std::chrono::milliseconds(500)) == std::future_status::ready);
         CHECK(done);    // active_object is still working
 
         CHECK(result.valid());
