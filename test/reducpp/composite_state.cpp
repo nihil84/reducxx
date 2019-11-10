@@ -1,11 +1,10 @@
 #include <reducpp/action.hpp>
 #include <reducpp/store_factory.hpp>
-#include "../doctest.h"
+#include "../catch.hpp"
 #include <vector>
 
 using namespace reducpp;
 
-TEST_SUITE("composite state") {
 
 // interface reducpp::action is only a guideline (supports any type of action)
 class myaction : public action {
@@ -104,7 +103,7 @@ TEST_CASE("lambdas")
     CHECK(sut.state<1>().ints.size() == 3);
 }
 
-TEST_CASE("behavioural checks") 
+SCENARIO("behavioural checks")
 {
     GIVEN("a composite store")
     WHEN("a reducer throws")
@@ -128,4 +127,3 @@ TEST_CASE("behavioural checks")
     }
 }
 
-}

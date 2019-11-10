@@ -2,7 +2,7 @@
 
 
 #include <reducpp/reducer_traits.hpp>
-#include "../doctest.h"
+#include "../catch.hpp"
 #include <iostream>
 
 using namespace std;
@@ -27,33 +27,31 @@ struct vs_reducer_traits<std::_Binder<std::_Unforced, S(__thiscall T::*)(const S
         : vs_reducer_traits<S(const S&, const A&)>
 {};
 
-TEST_SUITE("vs type binding") {
 
-    class AClass {
-    public:
-        int do_nothing(const int& s, const float& a) { return 0; }
-    };
+class AClass {
+public:
+    int do_nothing(const int& s, const float& a) { return 0; }
+};
 
-    template <class T>
-    struct Tool {
-        using CompositeState = typename vs_reducer_traits<T>::state_t;
-    };
+template <class T>
+struct Tool {
+    using CompositeState = typename vs_reducer_traits<T>::state_t;
+};
 
-    template <class T>
-    static Tool<T> get_tool(const T& item) {
-        return Tool<T>();
-    }
+template <class T>
+static Tool<T> get_tool(const T& item) {
+    return Tool<T>();
+}
 
-    TEST_CASE("member function binding") {
-        AClass instance;
-        auto bound_member = std::bind(&AClass::do_nothing, &instance, std::placeholders::_1, std::placeholders::_2);
+TEST_CASE("member function binding") {
+    AClass instance;
+    auto bound_member = std::bind(&AClass::do_nothing, &instance, std::placeholders::_1, std::placeholders::_2);
 
-        auto tool = get_tool(bound_member);
+    auto tool = get_tool(bound_member);
 
-        CHECK_EQ(0, bound_member(0, 0.3f));
-        CHECK_EQ(string(typeid(int).name()), string(typeid(decltype(tool)::CompositeState).name()));
-    }
+    CHECK(bound_member(0, 0.3f) == 0);
+    CHECK(string(typeid(int).name()) == string(typeid(decltype(tool)::CompositeState).name()));
+}
 
-} // end of TEST_SUITE
 
 #endif // end of _MSC_VER

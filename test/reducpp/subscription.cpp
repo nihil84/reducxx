@@ -1,13 +1,13 @@
 #include <reducpp/store.hpp>
 #include <reducpp/action.hpp>
-#include "../doctest.h"
+#include "../catch.hpp"
 #include <vector>
 
 using namespace std;
 using namespace reducpp;
 
 
-TEST_CASE("subscriptions") {
+SCENARIO("subscriptions") {
 
     struct mystate {
         int value;

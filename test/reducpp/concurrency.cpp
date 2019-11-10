@@ -1,8 +1,7 @@
 #include <reducpp/store_factory.hpp>
 #include <reducpp/async/active_object.hpp>
 #include <reducpp/action.hpp>
-#include "../doctest.h"
-
+#include "../catch.hpp"
 #include <mutex>
 #include <chrono>
 #include <thread>
@@ -10,7 +9,6 @@
 using namespace reducpp;
 
 
-TEST_SUITE_BEGIN("concurrency");
 
 struct state {
     bool concurrent = false;
@@ -21,7 +19,7 @@ class event {
 };
 
 
-TEST_CASE("creation and basic features" * doctest::may_fail()) {
+SCENARIO("creation and basic features") {
 
     GIVEN("an async store") 
     WHEN("dispatching event") 
@@ -48,7 +46,7 @@ TEST_CASE("creation and basic features" * doctest::may_fail()) {
     }
 }
 
-TEST_CASE("active object subsystem") {
+SCENARIO("active object subsystem") {
 
 
     GIVEN("the consumer function of an active_object")
@@ -115,5 +113,3 @@ TEST_CASE("active object subsystem") {
         CHECK_THROWS(result.get());
     }
 }
-
-TEST_SUITE_END();

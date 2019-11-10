@@ -1,10 +1,10 @@
 #include <reducpp/store.hpp>
 #include <reducpp/action.hpp>
-#include "../doctest.h"
+#include "../catch.hpp"
 
 using namespace reducpp;
 
-TEST_CASE("basic functionalities")
+SCENARIO("basic functionality")
 {
 
     struct mystate
