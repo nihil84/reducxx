@@ -25,7 +25,7 @@ class reducpp::store
     typedef std::function<void()> callback_t;
 
     template <class F>
-    store(const F& reducer) : m_reducer(reducer)
+    explicit store(const F& reducer) : m_reducer(reducer)
     {
         m_history.push_back(S());
     }

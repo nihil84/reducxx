@@ -12,6 +12,7 @@ using namespace reducpp;
 
 struct state {
     bool concurrent = false;
+    std::thread::id updated_by;
 };
 
 class event {
@@ -24,7 +25,6 @@ SCENARIO("creation and basic features") {
     GIVEN("an async store") 
     WHEN("dispatching event") 
     THEN("it is processed on a separated thread") {
-
         std::chrono::milliseconds interval(500);
         std::promise<bool> before;
         std::promise<void> after;
@@ -39,10 +39,40 @@ SCENARIO("creation and basic features") {
         });
 
         sut.dispatch( {} );
-        before.set_value(true);                    // synchronization [2]
+        before.set_value(true);                      // synchronization [2]
 
         CHECK(after.get_future().wait_for(interval*2) == std::future_status::ready);
         CHECK(concurrent);                              // synchronization [1]
+    }
+
+    GIVEN("an async store and a subscribed sync handler")
+    WHEN("dispatching event") 
+    THEN("the handler runs on the reducer's thread") {
+        std::chrono::milliseconds interval(500);
+        std::promise<void> before;
+        std::promise<void> after;
+        active_object<void> activeObject;
+
+        std::thread::id main_thread = std::this_thread::get_id();
+
+        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+            return { true, std::this_thread::get_id() };
+        });
+
+        sut.subscribe_async(activeObject, [&]() {
+            before.get_future().wait();
+            std::thread::id subscriber_thread = std::this_thread::get_id();
+            REQUIRE(main_thread != subscriber_thread);
+            REQUIRE(sut.state<state>().updated_by != subscriber_thread);
+            after.set_value();
+        });
+
+        sut.dispatch( {} ); // not a deadlock!
+
+        before.set_value();
+        after.get_future().wait();
+
+        REQUIRE(main_thread != sut.state<state>().updated_by);
     }
 }
 
@@ -62,6 +92,22 @@ SCENARIO("active object subsystem") {
         sut.post( [&]() { executed = true; });
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        CHECK(executed);
+    }
+
+    GIVEN("the consumer function of an active_object")
+    WHEN("defined and used with a result type")
+    THEN("the result value is retrieved via the future") {
+        bool executed = false;
+
+        active_object<int> sut;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        CHECK(!executed);
+        auto result = sut.post( [&]() { return true; });
+
+        executed = result.get();
         CHECK(executed);
     }
 
