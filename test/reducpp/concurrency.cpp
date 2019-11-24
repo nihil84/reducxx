@@ -8,8 +8,6 @@
 
 using namespace reducpp;
 
-
-
 struct state {
     bool concurrent = false;
     std::thread::id updated_by;
@@ -45,6 +43,27 @@ SCENARIO("creation and basic features") {
         CHECK(concurrent);                              // synchronization [1]
     }
 
+    GIVEN("an async store")
+    WHEN("the status update throws")
+    THEN("the exception is rethrown by the future from dispatch") {
+        std::chrono::milliseconds interval(500);
+        std::promise<void> before;
+        std::promise<void> after;
+
+        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+            before.get_future().get();     // wait for synchronization [2]
+            std::this_thread::sleep_for(interval);
+            after.set_value();                          // synchronization [1]
+            throw std::exception();
+        });
+
+        std::future<void> result = sut.dispatch( {} );
+        before.set_value();                      // synchronization [2]
+
+        CHECK(after.get_future().wait_for(interval*2) == std::future_status::ready);
+        CHECK_THROWS(result.get());                              // synchronization [1]
+    }
+
     GIVEN("an async store and a subscribed sync handler")
     WHEN("dispatching event") 
     THEN("the handler runs on the reducer's thread") {
@@ -77,7 +96,6 @@ SCENARIO("creation and basic features") {
 }
 
 SCENARIO("active object subsystem") {
-
 
     GIVEN("the consumer function of an active_object")
     WHEN("defined and used")
@@ -118,7 +136,7 @@ SCENARIO("active object subsystem") {
         std::promise<void> after;
         bool executed = false;
 
-        active_object<>* sut = new active_object<>();
+        auto sut = new active_object<>();
 
         sut->post( [&]() {
             before.get_future().wait();
@@ -144,7 +162,7 @@ SCENARIO("active object subsystem") {
         active_object<> sut;
 
         std::future<void> result = sut.post( []() {
-            throw "an exception";
+            throw std::exception();
         });
         CHECK(!done);   // no exception on this thread
 
@@ -158,4 +176,59 @@ SCENARIO("active object subsystem") {
         CHECK(result.valid());
         CHECK_THROWS(result.get());
     }
+}
+
+SCENARIO ("asynchronous subscriptions") {
+
+    GIVEN("an asynchronous subscriber")
+    WHEN("state is updated")
+    THEN("the subscriber is notified") {
+        std::promise<void> before;
+        std::promise<void> after;
+        active_object<void> worker;
+
+        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+            return { };
+        });
+
+        std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
+            before.set_value();
+            after.get_future().wait();
+        });
+
+        sut.dispatch( {} );
+
+        CHECK(before.get_future().wait_for(std::chrono::milliseconds(100)) == std::future_status::ready);
+        CHECK(handle->count() == 1);
+        after.set_value();
+
+        handle->wait_one();
+    }
+
+    GIVEN("an asynchronous subscriber")
+    WHEN("the subscribed routine throws")
+    THEN("the exception is rethrown on wait") {
+        std::promise<void> before;
+        std::promise<void> after;
+        active_object<void> worker;
+
+        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+            return { };
+        });
+
+        std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
+            before.set_value();
+            after.get_future().wait();
+            throw "error";
+        });
+
+        sut.dispatch( {} );
+
+        CHECK(before.get_future().wait_for(std::chrono::milliseconds(100)) == std::future_status::ready);
+        CHECK(handle->count() == 1);
+        after.set_value();
+
+        CHECK_THROWS(handle->wait_one());
+    }
+
 }

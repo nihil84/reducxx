@@ -3,6 +3,7 @@
 
 #include "../store.hpp"
 #include "active_object.hpp"
+#include "subscription_handle.hpp"
 
 #include <thread>
 
@@ -72,10 +73,7 @@ public:
      * @brief Add given function to the store subscriptions for state changes
      */
     template <class F>
-    void subscribe_async(active_object<void>& subscriber, const F& op)
-    {
-        m_store.subscribe([&subscriber, op]() { subscriber.post(op); });
-    }
+    std::shared_ptr<subscription_handle> subscribe_async(active_object<void>& subscriber, const F& op);
 
 private:
     store<S, A> m_store;
@@ -124,6 +122,21 @@ void reducpp::async_store<S, A>::do_dispatch(const A& action)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_store.dispatch(action);
+}
+
+template<class S, class A>
+template<class F>
+std::shared_ptr<reducpp::subscription_handle>
+reducpp::async_store<S, A>::subscribe_async(reducpp::active_object<void> &subscriber, const F &op) {
+    std::shared_ptr<subscription_handle> caller_handle(new subscription_handle);
+    std::weak_ptr<subscription_handle> handler_handle = caller_handle;
+    m_store.subscribe([&subscriber, op, handler_handle]() {
+        std::future<void> result = subscriber.post(op);
+        if (auto handle = handler_handle.lock()) {
+            handle->add(std::move(result));
+        }
+    });
+    return caller_handle;
 }
 
 #endif // ASYNC_STORE_HPP

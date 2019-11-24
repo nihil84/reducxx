@@ -13,13 +13,15 @@ add_executable(ReduCppTest
         src/reducpp/async/active_object.hpp
         src/reducpp/async/async_store.hpp
         src/reducpp/async/exception_handling_error.hpp
+        src/reducpp/async/subscription_handle.hpp
         test/test.cpp
         test/reducpp/basics.cpp
         test/reducpp/composite_state.cpp
         test/reducpp/copy_mng.cpp
         test/reducpp/subscription.cpp
         test/reducpp/concurrency.cpp
-        test/reducpp/vs_type_binding.cpp)
+        test/reducpp/vs_type_binding.cpp
+)
 
 set_target_properties(ReduCppTest PROPERTIES CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -34,4 +36,3 @@ include(CPack)
 # COVERAGE
 include(code-coverage.cmake)
 
-target_code_coverage(ReduCppTest EXCLUDE test/*)
