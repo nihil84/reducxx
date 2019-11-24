@@ -37,7 +37,7 @@ public:
     inline void wait_all() {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_waiter.wait(lock, [&]() { return m_promises.size() > 0; });
-        while (count() > 0) {
+        while (m_promises.size() > 0) {
             std::future<void> one(std::move(*m_promises.begin()));
             m_promises.pop_front();
             one.get();

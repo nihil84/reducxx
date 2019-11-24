@@ -9,6 +9,7 @@
 using namespace reducpp;
 
 struct state {
+    int counter = 0;
     bool concurrent = false;
     std::thread::id updated_by;
 };
@@ -75,7 +76,7 @@ SCENARIO("creation and basic features") {
         std::thread::id main_thread = std::this_thread::get_id();
 
         auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
-            return { true, std::this_thread::get_id() };
+            return { 0, true, std::this_thread::get_id() };
         });
 
         sut.subscribe_async(activeObject, [&]() {
@@ -178,11 +179,9 @@ SCENARIO("active object subsystem") {
     }
 }
 
-SCENARIO ("asynchronous subscriptions") {
+TEST_CASE("asynchronous subscriptions") {
 
-    GIVEN("an asynchronous subscriber")
-    WHEN("state is updated")
-    THEN("the subscriber is notified") {
+    SECTION("Given an asynchronous subscriber When state is update Then the subscriber is notified") {
         std::promise<void> before;
         std::promise<void> after;
         active_object<void> worker;
@@ -205,9 +204,7 @@ SCENARIO ("asynchronous subscriptions") {
         handle->wait_one();
     }
 
-    GIVEN("an asynchronous subscriber")
-    WHEN("the subscribed routine throws")
-    THEN("the exception is rethrown on wait") {
+    SECTION("Given an asynchronous subscriber When the routine throws Then the exception is rethrown on wait") {
         std::promise<void> before;
         std::promise<void> after;
         active_object<void> worker;
@@ -219,7 +216,7 @@ SCENARIO ("asynchronous subscriptions") {
         std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
             before.set_value();
             after.get_future().wait();
-            throw "error";
+            throw std::exception();
         });
 
         sut.dispatch( {} );
@@ -231,4 +228,27 @@ SCENARIO ("asynchronous subscriptions") {
         CHECK_THROWS(handle->wait_one());
     }
 
+    SECTION("Given an asynchronous subscriber When there are many updates Then they can be checked after") {
+        static const int WAIT_FOR = 10;
+        std::promise<void> done;
+        active_object<void> worker;
+
+        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+            return { s.counter+1, s.concurrent, s.updated_by };
+        });
+
+        std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
+            if (sut.state<state>().counter < WAIT_FOR) return;
+            done.set_value();
+        });
+
+        for (int i=0; i<WAIT_FOR; ++i) {
+            sut.dispatch( {} );
+        }
+
+        CHECK(done.get_future().wait_for(std::chrono::milliseconds(300)) == std::future_status::ready);
+        CHECK(handle->count() == WAIT_FOR);
+
+        handle->wait_all();
+    }
 }
