@@ -59,8 +59,7 @@ public:
     T state();
 
     /**
-     * @brief Add given function or function to the store subscriptions for 
-     * state change.
+     * @brief Add given function or function to the store subscriptions for state change.
      * Subscriptions will run on the reducers thread and are then synchronous 
      * to the state change.
      */ 
@@ -70,7 +69,11 @@ public:
     }
 
     /**
-     * @brief Add given function to the store subscriptions for state changes
+     * @brief Add given function to the store subscriptions for state changes.
+     * Subscriptions will run on the given <i>active object</i>.
+     * @return a reference to a heap allocated handle that collect results from each execution
+     * of the subscriber, if you are not interested in them, discard or dispose the returned pointer
+     * to avoid memory overload.
      */
     template <class F>
     std::shared_ptr<subscription_handle> subscribe_async(active_object<void>& subscriber, const F& op);
