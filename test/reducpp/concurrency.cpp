@@ -5,6 +5,7 @@
 #include <mutex>
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 using namespace reducpp;
 
@@ -232,23 +233,25 @@ TEST_CASE("asynchronous subscriptions") {
         static const int WAIT_FOR = 10;
         std::promise<void> done;
         active_object<void> worker;
+        std::once_flag set_done_once;
 
         auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
-            return { s.counter+1, s.concurrent, s.updated_by };
+            return {s.counter + 1, s.concurrent, s.updated_by};
         });
 
         std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
             if (sut.state<state>().counter < WAIT_FOR) return;
-            done.set_value();
+            std::call_once(set_done_once, [&]() { done.set_value(); });
         });
 
-        for (int i=0; i<WAIT_FOR; ++i) {
-            sut.dispatch( {} );
+        for (int i = 0; i < WAIT_FOR; ++i) {
+            sut.dispatch({});
         }
 
         CHECK(done.get_future().wait_for(std::chrono::milliseconds(300)) == std::future_status::ready);
-        CHECK(handle->count() == WAIT_FOR);
 
+        CHECK(handle->count() == WAIT_FOR);
         handle->wait_all();
+        CHECK(handle->count() == 0);
     }
 }

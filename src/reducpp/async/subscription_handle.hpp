@@ -18,28 +18,27 @@ public:
 
     inline int count() const {
         std::unique_lock<std::mutex> lock(m_mutex);
-        return m_promises.size();
+        return m_futures.size();
     }
 
     inline void add(std::future<void>&& result) {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_promises.push_back(std::move(result));
+        m_futures.push_back(std::move(result));
     }
 
     inline void wait_one() {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_waiter.wait(lock, [&]() { return m_promises.size() > 0; });
-        std::future<void> one(std::move(*m_promises.begin()));
-        m_promises.pop_front();
+        m_waiter.wait(lock, [&]() { return !m_futures.empty(); });
+        std::future<void> one(std::move(*m_futures.begin()));
+        m_futures.pop_front();
         one.get();
     }
 
     inline void wait_all() {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_waiter.wait(lock, [&]() { return m_promises.size() > 0; });
-        while (m_promises.size() > 0) {
-            std::future<void> one(std::move(*m_promises.begin()));
-            m_promises.pop_front();
+        while (!m_futures.empty()) {
+            std::future<void> one(std::move(*m_futures.begin()));
+            m_futures.pop_front();
             one.get();
         }
     }
@@ -47,7 +46,7 @@ public:
 private:
     mutable std::mutex m_mutex;
     std::condition_variable m_waiter;
-    std::list<std::future<void>> m_promises;
+    std::list<std::future<void>> m_futures;
 };
 
 

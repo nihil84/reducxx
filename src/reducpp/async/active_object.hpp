@@ -30,9 +30,12 @@ class reducpp::active_object
         std::promise<R> promise;
         job_op operation;
         template <class F>
-        job(const F& operation) : operation(operation) { }
+        explicit job(const F& operation) : operation(operation) { }
         template <class F>
-        job(F&& operation) noexcept : operation(std::move(operation)) { }
+        explicit job(F&& operation) noexcept : operation(std::move(operation)) { }
+        job(job&& rhs) noexcept : promise(std::move(rhs.promise)), operation(std::move(rhs.operation)) { }
+        job(const job&) = delete;
+        job& operator =(const job&) = delete;
     };
 
     active_object()
@@ -81,9 +84,11 @@ static void execute(typename reducpp::active_object<T>::job& j)
     }
 }
 
+#include <iostream>
 template <>
 void execute<void>(typename reducpp::active_object<void>::job& j)
 {
+    static int count = 0;
     try
     {
         j.operation();
