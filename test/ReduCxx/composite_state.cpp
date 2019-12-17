@@ -1,12 +1,12 @@
-#include <reducpp/action.hpp>
-#include <reducpp/store_factory.hpp>
+#include <ReduCxx/action.hpp>
+#include <ReduCxx/store_factory.hpp>
 #include "../catch.hpp"
 #include <vector>
 
-using namespace reducpp;
+using namespace ReduCxx;
 
 
-// interface reducpp::action is only a guideline (supports any type of action)
+// interface ReduCxx::action is only a guideline (supports any type of action)
 class myaction : public action {
 public:
     enum TYPE { INCREMENT, DECREMENT };

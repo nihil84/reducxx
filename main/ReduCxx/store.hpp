@@ -8,7 +8,7 @@
 #include <vector>
 #include <tuple>
 
-namespace reducpp
+namespace ReduCxx
 {
     template <class S, class A>
     class store;
@@ -18,7 +18,7 @@ namespace reducpp
  * @brief Plain/basic ReduCpp store with no concurrency support.
  */
 template <class S, class A>
-class reducpp::store
+class ReduCxx::store
 {
   public:
     typedef std::function<S(const S &, const A &)> reducer_t;
@@ -73,21 +73,21 @@ class reducpp::store
 };
 
 template <class S, class A>
-reducpp::store<S, A>::store(store&& temp) noexcept
+ReduCxx::store<S, A>::store(store&& temp) noexcept
     : m_reducer(std::move(temp.m_reducer))
     , m_history(std::move(temp.m_history))
     , m_subscriptions(std::move(temp.m_subscriptions))
 { }
 
 template <class S, class A>
-void reducpp::store<S, A>::dispatch(const A& action)
+void ReduCxx::store<S, A>::dispatch(const A& action)
 {
     m_history.push_back(m_reducer(m_history.back(), action));
     perform_callbacks();
 }
 
 template <class S, class A>
-bool reducpp::store<S, A>::revert()
+bool ReduCxx::store<S, A>::revert()
 {
     if (m_history.size() == 1)
     {
@@ -101,7 +101,7 @@ bool reducpp::store<S, A>::revert()
 }
 
 template <class S, class A>
-void reducpp::store<S, A>::perform_callbacks()
+void ReduCxx::store<S, A>::perform_callbacks()
 {
     std::vector<store_subscriptions_error::error> exceptions;
     int idx = 0;

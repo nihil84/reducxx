@@ -5,11 +5,11 @@
 #include <utility>
 #include <vector>
 
-namespace reducpp {
+namespace ReduCxx {
     class store_subscriptions_error;
 }
 
-class reducpp::store_subscriptions_error : public std::exception 
+class ReduCxx::store_subscriptions_error : public std::exception
 {
   public:
     typedef std::pair<int /*index*/, std::exception_ptr> error;

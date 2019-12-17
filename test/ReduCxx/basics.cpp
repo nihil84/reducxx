@@ -1,8 +1,8 @@
-#include <reducpp/store.hpp>
-#include <reducpp/action.hpp>
+#include <ReduCxx/store.hpp>
+#include <ReduCxx/action.hpp>
 #include "../catch.hpp"
 
-using namespace reducpp;
+using namespace ReduCxx;
 
 SCENARIO("basic functionality")
 {
@@ -12,7 +12,7 @@ SCENARIO("basic functionality")
         int value;
     };
 
-    class myaction : public reducpp::action
+    class myaction : public ReduCxx::action
     {
       public:
         enum TYPE
@@ -103,7 +103,7 @@ SCENARIO("basic functionality")
         {
             sut.dispatch( { myaction::INCREMENT });
         }
-        catch (reducpp::store_subscriptions_error& ex) 
+        catch (ReduCxx::store_subscriptions_error& ex)
         {
             CHECK(ex.errors().size() == 1);
             CHECK(ex.errors()[0].first == 0);

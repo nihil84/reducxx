@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <functional>
 
-namespace reducpp
+namespace ReduCxx
 {
     template <class R = void>
     class active_object;
@@ -20,7 +20,7 @@ namespace reducpp
  * @brief A more or less canonical implementation of the Active Object pattern.
  */
 template <class R>
-class reducpp::active_object
+class ReduCxx::active_object
 {
   public:
     typedef std::function<R()> job_op;
@@ -72,7 +72,7 @@ class reducpp::active_object
 };
 
 template <class T>
-static void execute(typename reducpp::active_object<T>::job& j)
+static void execute(typename ReduCxx::active_object<T>::job& j)
 {
     try
     {
@@ -86,7 +86,7 @@ static void execute(typename reducpp::active_object<T>::job& j)
 
 #include <iostream>
 template <>
-void execute<void>(typename reducpp::active_object<void>::job& j)
+void execute<void>(typename ReduCxx::active_object<void>::job& j)
 {
     static int count = 0;
     try
@@ -101,14 +101,14 @@ void execute<void>(typename reducpp::active_object<void>::job& j)
 }
 
 template <class R>
-reducpp::active_object<R>::~active_object()
+ReduCxx::active_object<R>::~active_object()
 {
     shutdown();
     m_worker.join();
 }
 
 template <class R>
-void reducpp::active_object<R>::shutdown()
+void ReduCxx::active_object<R>::shutdown()
 {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -119,7 +119,7 @@ void reducpp::active_object<R>::shutdown()
 
 template <class R>
 template <class F>
-std::future<R> reducpp::active_object<R>::post(const F& operation)
+std::future<R> ReduCxx::active_object<R>::post(const F& operation)
 {
     std::future<R> retv;
     {
@@ -133,7 +133,7 @@ std::future<R> reducpp::active_object<R>::post(const F& operation)
 
 template <class R>
 template <class F>
-std::future<R> reducpp::active_object<R>::post(F&& operation)
+std::future<R> ReduCxx::active_object<R>::post(F&& operation)
 {
     std::future<R> retv;
     {
@@ -146,7 +146,7 @@ std::future<R> reducpp::active_object<R>::post(F&& operation)
 }
 
 template <class R>
-void reducpp::active_object<R>::run()
+void ReduCxx::active_object<R>::run()
 {
     for (;;)
     {

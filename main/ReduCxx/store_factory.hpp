@@ -4,13 +4,13 @@
 #include "store.hpp"
 #include "async/async_store.hpp"
 
-namespace reducpp {
+namespace ReduCxx {
     template <class A>
     struct store_factory;
 }
 
 template <class A>
-struct reducpp::store_factory {
+struct ReduCxx::store_factory {
     template <class ...Reducers>
     static auto make(const Reducers& ...reducers) {
         using CompositeState = typename composer<A, Reducers...>::CompositeState;

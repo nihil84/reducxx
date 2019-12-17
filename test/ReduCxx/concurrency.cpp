@@ -1,12 +1,12 @@
-#include <reducpp/store_factory.hpp>
-#include <reducpp/async/active_object.hpp>
+#include <ReduCxx/store_factory.hpp>
+#include <ReduCxx/Async/active_object.hpp>
 #include "../catch.hpp"
 #include <mutex>
 #include <chrono>
 #include <thread>
 #include <iostream>
 
-using namespace reducpp;
+using namespace ReduCxx;
 
 struct state {
     int counter = 0;
@@ -39,7 +39,7 @@ SCENARIO("creation and basic features") {
         });
 
         sut.dispatch( {} );
-        before.set_value(true);                      // synchronization [2]
+        before.set_value(true);                         // synchronization [2]
 
         CHECK(after_future.wait_for(interval*2) == std::future_status::ready);
         CHECK(concurrent);                              // synchronization [1]

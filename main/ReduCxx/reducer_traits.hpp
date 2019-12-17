@@ -3,7 +3,7 @@
 
 #include <functional>
 
-namespace reducpp {
+namespace ReduCxx {
 namespace _impl {
 
 template<class F>

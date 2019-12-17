@@ -5,22 +5,22 @@
 #include <utility>
 #include "reducer_traits.hpp"
 
-namespace reducpp
+namespace ReduCxx
 {
     template <class A, class... Reducers>
     class composer;
 
     template <class A>
     struct reduce;
-} // namespace reducpp
+} // namespace ReduCxx
 
 //! @internal
 template <class A, class... Reducers>
-class reducpp::composer
+class ReduCxx::composer
 {
   public:
     using ReducersTuple = std::tuple<std::decay_t<Reducers>...>;
-    using CompositeState = std::tuple<typename reducpp::_impl::reducer_traits<Reducers>::state_t...>;
+    using CompositeState = std::tuple<typename ReduCxx::_impl::reducer_traits<Reducers>::state_t...>;
 
     composer(const Reducers &... reducers)
         : m_reducers(reducers...) {}
@@ -41,7 +41,7 @@ class reducpp::composer
 };
 
 template <class A>
-struct reducpp::reduce
+struct ReduCxx::reduce
 {
     template <class... Reducers>
     static inline composer<A, Reducers...> with(Reducers... reducers)

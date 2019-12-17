@@ -1,7 +1,7 @@
 #if defined _MSC_VER  // MS Visual Studio
 
 
-#include <reducpp/reducer_traits.hpp>
+#include <ReduCxx/reducer_traits.hpp>
 #include "../catch.hpp"
 #include <iostream>
 

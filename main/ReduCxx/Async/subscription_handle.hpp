@@ -5,14 +5,14 @@
 #include <queue>
 #include <chrono>
 
-namespace reducpp {
+namespace ReduCxx {
     class subscription_handle;
 }
 
 /**
  * @brief Collect results of an asynchronous subscribed routine.
  */
-class reducpp::subscription_handle {
+class ReduCxx::subscription_handle {
 public:
 
     subscription_handle(const subscription_handle&) = delete;
@@ -73,7 +73,7 @@ private:
 };
 
 template<class Rep, class Period>
-bool reducpp::subscription_handle::wait_one(const std::chrono::duration<Rep, Period>& timeout) {
+bool ReduCxx::subscription_handle::wait_one(const std::chrono::duration<Rep, Period>& timeout) {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_waiter.wait(lock, [&]() { return !m_futures.empty(); });
     if (m_futures.begin()->wait_for(timeout) != std::future_status::ready) return false;
@@ -82,7 +82,7 @@ bool reducpp::subscription_handle::wait_one(const std::chrono::duration<Rep, Per
 }
 
 template<class Rep, class Period>
-bool reducpp::subscription_handle::wait_all(const std::chrono::duration<Rep, Period>& timeout) {
+bool ReduCxx::subscription_handle::wait_all(const std::chrono::duration<Rep, Period>& timeout) {
     std::unique_lock<std::mutex> lock(m_mutex);
     while (!m_futures.empty()) {
         if (m_futures.begin()->wait_for(timeout) != std::future_status::ready) return false;

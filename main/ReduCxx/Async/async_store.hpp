@@ -7,7 +7,7 @@
 
 #include <thread>
 
-namespace reducpp {
+namespace ReduCxx {
     template <class S, class A>
     class async_store;
 }
@@ -20,7 +20,7 @@ namespace reducpp {
  * Please be aware that reducers shall not access to shared resources.
  */
 template <class S, class A>
-class reducpp::async_store {
+class ReduCxx::async_store {
 public:
 
     template <class F>
@@ -66,7 +66,7 @@ public:
      * Due to the fact the @a callback will run on the store thread, you should avoid lengthy, time consuming
      * computations here, otherwise the event processing may slow down excessively.
      * Long computations could be moved to another thread with any custom signalling mechanism or you can use
-     * a @a reducpp::active_object and the @a async_store::subscribe_async function directly.
+     * a @a ReduCxx::active_object and the @a async_store::subscribe_async function directly.
      */ 
     template <class F>
     void subscribe_sync(const F& callback) {
@@ -92,26 +92,26 @@ private:
 };
 
 template <class S, class A>
-std::future<void> reducpp::async_store<S, A>::dispatch(const A& action) {
+std::future<void> ReduCxx::async_store<S, A>::dispatch(const A& action) {
     return m_reducer_thread.post(
         std::bind(&async_store<S, A>::do_dispatch, this, action));
 }
 
 template <class S, class A>
-std::future<void> reducpp::async_store<S, A>::dispatch(A&& action) {
+std::future<void> ReduCxx::async_store<S, A>::dispatch(A&& action) {
     return m_reducer_thread.post(
         std::bind(&async_store<S, A>::do_dispatch, this, std::move(action)));
 }
 
 template<class S, class A>
-S reducpp::async_store<S, A>::state() const {
+S ReduCxx::async_store<S, A>::state() const {
     std::unique_lock<std::mutex> lock(m_mutex);
     return m_store.state();
 }
 
 template<class S, class A>
 template <size_t I>
-std::tuple_element_t<I, S> reducpp::async_store<S, A>::state()
+std::tuple_element_t<I, S> ReduCxx::async_store<S, A>::state()
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     return std::get<I>(m_store.state());
@@ -119,14 +119,14 @@ std::tuple_element_t<I, S> reducpp::async_store<S, A>::state()
 
 template<class S, class A>
 template<class T>
-T reducpp::async_store<S, A>::state()
+T ReduCxx::async_store<S, A>::state()
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     return std::get<T>(m_store.state());
 }
 
 template <class S, class A>
-void reducpp::async_store<S, A>::do_dispatch(const A& action)
+void ReduCxx::async_store<S, A>::do_dispatch(const A& action)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_store.dispatch(action);
@@ -134,8 +134,8 @@ void reducpp::async_store<S, A>::do_dispatch(const A& action)
 
 template<class S, class A>
 template<class F>
-std::shared_ptr<reducpp::subscription_handle>
-reducpp::async_store<S, A>::subscribe_async(reducpp::active_object<void> &subscriber, const F &op) {
+std::shared_ptr<ReduCxx::subscription_handle>
+ReduCxx::async_store<S, A>::subscribe_async(ReduCxx::active_object<void> &subscriber, const F &op) {
     std::shared_ptr<subscription_handle> caller_handle(new subscription_handle);
     std::weak_ptr<subscription_handle> handler_handle = caller_handle;
     m_store.subscribe([&subscriber, op, handler_handle]() {

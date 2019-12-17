@@ -1,10 +1,10 @@
-#include <reducpp/store.hpp>
-#include <reducpp/action.hpp>
+#include <ReduCxx/store.hpp>
+#include <ReduCxx/action.hpp>
 #include "../catch.hpp"
 #include <vector>
 
 using namespace std;
-using namespace reducpp;
+using namespace ReduCxx;
 
 
 SCENARIO("subscriptions") {
@@ -13,7 +13,7 @@ SCENARIO("subscriptions") {
         int value;
     };
 
-    class myaction : public reducpp::action {
+    class myaction : public ReduCxx::action {
     public:
         enum TYPE { INCREMENT, DECREMENT };
         myaction(TYPE type) : m_type(type) { }

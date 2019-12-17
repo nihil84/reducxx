@@ -3,12 +3,12 @@
 
 #include <stdexcept>
 
-namespace reducpp
+namespace ReduCxx
 {
     class exception_handling_error;
 }
 
-class reducpp::exception_handling_error : public std::runtime_error
+class ReduCxx::exception_handling_error : public std::runtime_error
 {
   public:
     exception_handling_error(const char* msg) : runtime_error(msg) {}
