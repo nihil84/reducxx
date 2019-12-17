@@ -15,9 +15,7 @@ struct state {
     std::thread::id updated_by;
 };
 
-class event {
-
-};
+class event { };
 
 
 SCENARIO("creation and basic features") {
@@ -30,9 +28,12 @@ SCENARIO("creation and basic features") {
         std::promise<void> after;
 
         bool concurrent = false;
+        // gcc will crash on promise.set_value() if no future has been created yet (shame)
+        auto before_future = before.get_future();
+        auto after_future = after.get_future();
 
         auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
-            concurrent = before.get_future().get();     // wait for synchronization [2]
+            concurrent = before_future.get();           // wait for synchronization [2]
             std::this_thread::sleep_for(interval);
             after.set_value();                          // synchronization [1]
             return { };
@@ -41,7 +42,7 @@ SCENARIO("creation and basic features") {
         sut.dispatch( {} );
         before.set_value(true);                      // synchronization [2]
 
-        CHECK(after.get_future().wait_for(interval*2) == std::future_status::ready);
+        CHECK(after_future.wait_for(interval*2) == std::future_status::ready);
         CHECK(concurrent);                              // synchronization [1]
     }
 
@@ -121,8 +122,6 @@ SCENARIO("active object subsystem") {
         bool executed = false;
 
         active_object<int> sut;
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         CHECK(!executed);
         auto result = sut.post( [&]() { return true; });

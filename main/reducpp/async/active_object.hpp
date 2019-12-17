@@ -32,7 +32,7 @@ class reducpp::active_object
         template <class F>
         explicit job(const F& operation) : operation(operation) { }
         template <class F>
-        explicit job(F&& operation) noexcept : operation(std::move(operation)) { }
+        job(F&& operation) noexcept : operation(std::forward<F>(operation)) { }
         job(job&& rhs) noexcept : promise(std::move(rhs.promise)), operation(std::move(rhs.operation)) { }
         job(const job&) = delete;
         job& operator =(const job&) = delete;
@@ -138,7 +138,7 @@ std::future<R> reducpp::active_object<R>::post(F&& operation)
     std::future<R> retv;
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_queue.push(job(std::move(operation)));
+        m_queue.push(job(std::forward<F>(operation)));
         retv = m_queue.back().promise.get_future();
     }
     m_available.notify_one();
@@ -168,6 +168,7 @@ void reducpp::active_object<R>::run()
         }
         catch (...)
         {
+            // this will terminate the application
             std::throw_with_nested(exception_handling_error(
                 "unable to properly handle exception in thread, aborted"));
         }

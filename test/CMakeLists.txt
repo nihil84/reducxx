@@ -33,6 +33,6 @@ if (ENABLE_COVERAGE)
         message("building with coverage data (gcc)")
         target_compile_options(ReduCppTest PRIVATE --coverage)
         #Uncomment in case of linker errors
-        #target_link_libraries(ReduCppTest PRIVATE gcov)
+        target_link_libraries(ReduCppTest PRIVATE gcov)
     endif ()
 endif ()
