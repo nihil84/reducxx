@@ -1,24 +1,24 @@
-#ifndef REDUCPP_SUBSCRIPTION_HANDLE_HPP
-#define REDUCPP_SUBSCRIPTION_HANDLE_HPP
+#ifndef REDUCXX_SUBSCRIPTION_HANDLE_HPP
+#define REDUCXX_SUBSCRIPTION_HANDLE_HPP
 
 #include <future>
 #include <queue>
 #include <chrono>
 
 namespace ReduCxx {
-    class subscription_handle;
+    class SubscriptionHandle;
 }
 
 /**
  * @brief Collect results of an asynchronous subscribed routine.
  */
-class ReduCxx::subscription_handle {
+class ReduCxx::SubscriptionHandle {
 public:
 
-    subscription_handle(const subscription_handle&) = delete;
-    subscription_handle& operator =(const subscription_handle&) = delete;
+    SubscriptionHandle(const SubscriptionHandle&) = delete;
+    SubscriptionHandle& operator =(const SubscriptionHandle&) = delete;
 
-    subscription_handle() = default;
+    SubscriptionHandle() = default;
 
     inline void add(std::future<void>&& result) {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -36,21 +36,21 @@ public:
     /**
      * @brief Wait the for the first result to be ready, blocks if no result available.
      */
-    inline void wait_one() {
+    inline void waitOne() {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_waiter.wait(lock, [&]() { return !m_futures.empty(); });
         pop();
     }
 
     template <class Rep, class Period>
-    bool wait_one(const std::chrono::duration<Rep,Period>& timeout);
+    bool waitOne(const std::chrono::duration<Rep,Period>& timeout);
 
     /**
      * Wait for all the results currently available to be ready.
      * @note If no result available, it returns immediately.
      * @warning Could cause deadlock if the production of a result depends on adding futures to this object.
      */
-    inline void wait_all() {
+    inline void waitAll() {
         std::unique_lock<std::mutex> lock(m_mutex);
         while (!m_futures.empty()) {
             pop();
@@ -58,7 +58,7 @@ public:
     }
 
     template <class Rep, class Period>
-    bool wait_all(const std::chrono::duration<Rep,Period>& timeout);
+    bool waitAll(const std::chrono::duration<Rep,Period>& timeout);
 
 private:
     mutable std::mutex m_mutex;
@@ -73,7 +73,7 @@ private:
 };
 
 template<class Rep, class Period>
-bool ReduCxx::subscription_handle::wait_one(const std::chrono::duration<Rep, Period>& timeout) {
+bool ReduCxx::SubscriptionHandle::waitOne(const std::chrono::duration<Rep, Period>& timeout) {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_waiter.wait(lock, [&]() { return !m_futures.empty(); });
     if (m_futures.begin()->wait_for(timeout) != std::future_status::ready) return false;
@@ -82,7 +82,7 @@ bool ReduCxx::subscription_handle::wait_one(const std::chrono::duration<Rep, Per
 }
 
 template<class Rep, class Period>
-bool ReduCxx::subscription_handle::wait_all(const std::chrono::duration<Rep, Period>& timeout) {
+bool ReduCxx::SubscriptionHandle::waitAll(const std::chrono::duration<Rep, Period>& timeout) {
     std::unique_lock<std::mutex> lock(m_mutex);
     while (!m_futures.empty()) {
         if (m_futures.begin()->wait_for(timeout) != std::future_status::ready) return false;
@@ -92,4 +92,4 @@ bool ReduCxx::subscription_handle::wait_all(const std::chrono::duration<Rep, Per
 }
 
 
-#endif //REDUCPP_SUBSCRIPTION_HANDLE_HPP
+#endif //REDUCXX_SUBSCRIPTION_HANDLE_HPP

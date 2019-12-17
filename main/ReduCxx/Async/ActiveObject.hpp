@@ -1,7 +1,7 @@
-#ifndef ACTIVE_OBJECT_HPP
-#define ACTIVE_OBJECT_HPP
+#ifndef REDUCXX_ACTIVE_OBJECT_HPP
+#define REDUCXX_ACTIVE_OBJECT_HPP
 
-#include "exception_handling_error.hpp"
+#include "ExceptionHandlingError.hpp"
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -13,14 +13,14 @@
 namespace ReduCxx
 {
     template <class R = void>
-    class active_object;
+    class ActiveObject;
 }
 
 /**
  * @brief A more or less canonical implementation of the Active Object pattern.
  */
 template <class R>
-class ReduCxx::active_object
+class ReduCxx::ActiveObject
 {
   public:
     typedef std::function<R()> job_op;
@@ -38,20 +38,20 @@ class ReduCxx::active_object
         job& operator =(const job&) = delete;
     };
 
-    active_object()
-        : m_worker(std::bind(&active_object<R>::run, this)), m_quit(false)
+    ActiveObject()
+        : m_worker(std::bind(&ActiveObject<R>::run, this)), m_quit(false)
     { }
 
-    active_object(active_object&& temp) noexcept
+    ActiveObject(ActiveObject&& temp) noexcept
         : m_queue(std::move(temp.m_queue))
         , m_worker(std::move(temp.m_worker))
         , m_quit(false)
     { }
 
-    ~active_object();
+    ~ActiveObject();
 
-    active_object(const active_object&) = delete;
-    active_object& operator =(const active_object&) = delete;
+    ActiveObject(const ActiveObject&) = delete;
+    ActiveObject& operator =(const ActiveObject&) = delete;
 
     template <class F>
     std::future<R> post(const F& operation);
@@ -72,7 +72,7 @@ class ReduCxx::active_object
 };
 
 template <class T>
-static void execute(typename ReduCxx::active_object<T>::job& j)
+static void execute(typename ReduCxx::ActiveObject<T>::job& j)
 {
     try
     {
@@ -86,7 +86,7 @@ static void execute(typename ReduCxx::active_object<T>::job& j)
 
 #include <iostream>
 template <>
-void execute<void>(typename ReduCxx::active_object<void>::job& j)
+void execute<void>(typename ReduCxx::ActiveObject<void>::job& j)
 {
     static int count = 0;
     try
@@ -101,14 +101,14 @@ void execute<void>(typename ReduCxx::active_object<void>::job& j)
 }
 
 template <class R>
-ReduCxx::active_object<R>::~active_object()
+ReduCxx::ActiveObject<R>::~ActiveObject()
 {
     shutdown();
     m_worker.join();
 }
 
 template <class R>
-void ReduCxx::active_object<R>::shutdown()
+void ReduCxx::ActiveObject<R>::shutdown()
 {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -119,7 +119,7 @@ void ReduCxx::active_object<R>::shutdown()
 
 template <class R>
 template <class F>
-std::future<R> ReduCxx::active_object<R>::post(const F& operation)
+std::future<R> ReduCxx::ActiveObject<R>::post(const F& operation)
 {
     std::future<R> retv;
     {
@@ -133,7 +133,7 @@ std::future<R> ReduCxx::active_object<R>::post(const F& operation)
 
 template <class R>
 template <class F>
-std::future<R> ReduCxx::active_object<R>::post(F&& operation)
+std::future<R> ReduCxx::ActiveObject<R>::post(F&& operation)
 {
     std::future<R> retv;
     {
@@ -146,7 +146,7 @@ std::future<R> ReduCxx::active_object<R>::post(F&& operation)
 }
 
 template <class R>
-void ReduCxx::active_object<R>::run()
+void ReduCxx::ActiveObject<R>::run()
 {
     for (;;)
     {
@@ -169,10 +169,10 @@ void ReduCxx::active_object<R>::run()
         catch (...)
         {
             // this will terminate the application
-            std::throw_with_nested(exception_handling_error(
+            std::throw_with_nested(ExceptionHandlingError(
                 "unable to properly handle exception in thread, aborted"));
         }
     }
 }
 
-#endif // ACTIVE_OBJECT_HPP
+#endif //REDUCXX_ACTIVE_OBJECT_HPP

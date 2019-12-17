@@ -2,7 +2,7 @@
 #define REDUCXX_STORE_FACTORY_HPP
 
 #include "Store.hpp"
-#include "Async/async_store.hpp"
+#include "ReduCxx/Async/AsyncStore.hpp"
 
 namespace ReduCxx {
     template <class A>
@@ -20,7 +20,7 @@ struct ReduCxx::StoreFactory {
     template <class ...Reducers>
     static auto makeAsync(const Reducers& ...reducers) {
         using CompositeState = typename Composer<A, Reducers...>::CompositeState;
-        return async_store<CompositeState, A>(Reduce<A>::with(reducers...));
+        return AsyncStore<CompositeState, A>(Reduce<A>::with(reducers...));
     }
 };
 

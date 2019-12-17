@@ -1,5 +1,5 @@
 #include <ReduCxx/StoreFactory.hpp>
-#include <ReduCxx/Async/active_object.hpp>
+#include <ReduCxx/Async/ActiveObject.hpp>
 #include "../catch.hpp"
 #include <mutex>
 #include <chrono>
@@ -72,7 +72,7 @@ SCENARIO("creation and basic features") {
         std::chrono::milliseconds interval(500);
         std::promise<void> before;
         std::promise<void> after;
-        active_object<void> activeObject;
+        ActiveObject<void> activeObject;
 
         std::thread::id main_thread = std::this_thread::get_id();
 
@@ -80,7 +80,7 @@ SCENARIO("creation and basic features") {
             return {0, true, std::this_thread::get_id()};
         });
 
-        sut.subscribe_async(activeObject, [&]() {
+        sut.subscribeAsync(activeObject, [&]() {
             before.get_future().wait();
             std::thread::id subscriber_thread = std::this_thread::get_id();
             REQUIRE(main_thread != subscriber_thread);
@@ -99,12 +99,12 @@ SCENARIO("creation and basic features") {
 
 SCENARIO("active object subsystem") {
 
-    GIVEN("the consumer function of an active_object")
+    GIVEN("the consumer function of an ActiveObject")
     WHEN("defined and used")
     THEN("it is executed only after the reception of a request") {
         bool executed = false;
 
-        active_object<> sut;
+        ActiveObject<> sut;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         CHECK(!executed);
@@ -115,12 +115,12 @@ SCENARIO("active object subsystem") {
         CHECK(executed);
     }
 
-    GIVEN("the consumer function of an active_object")
+    GIVEN("the consumer function of an ActiveObject")
     WHEN("defined and used with a result type")
     THEN("the result value is retrieved via the future") {
         bool executed = false;
 
-        active_object<int> sut;
+        ActiveObject<int> sut;
 
         CHECK(!executed);
         auto result = sut.post( [&]() { return true; });
@@ -129,14 +129,14 @@ SCENARIO("active object subsystem") {
         CHECK(executed);
     }
 
-    GIVEN("an active_object")
+    GIVEN("an ActiveObject")
     WHEN("scheduling a request")
     THEN("it is executed on a separated thread") {
         std::promise<void> before;
         std::promise<void> after;
         bool executed = false;
 
-        auto sut = new active_object<>();
+        auto sut = new ActiveObject<>();
 
         sut->post( [&]() {
             before.get_future().wait();
@@ -153,13 +153,13 @@ SCENARIO("active object subsystem") {
         delete sut;
     }
 
-    GIVEN("an active_object")
+    GIVEN("an ActiveObject")
     WHEN("the request handler throws")
     THEN("the control-loop is not interrupted") {
         std::promise<void> mutex;
         bool done = false;
 
-        active_object<> sut;
+        ActiveObject<> sut;
 
         std::future<void> result = sut.post( []() {
             throw std::exception();
@@ -171,7 +171,7 @@ SCENARIO("active object subsystem") {
             mutex.set_value();
         });
         CHECK(mutex.get_future().wait_for(std::chrono::milliseconds(500)) == std::future_status::ready);
-        CHECK(done);    // active_object is still working
+        CHECK(done);    // ActiveObject is still working
 
         CHECK(result.valid());
         CHECK_THROWS(result.get());
@@ -183,13 +183,13 @@ TEST_CASE("asynchronous subscriptions") {
     SECTION("Given an asynchronous subscriber When state is update Then the subscriber is notified") {
         std::promise<void> before;
         std::promise<void> after;
-        active_object<void> worker;
+        ActiveObject<void> worker;
 
         auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
             return {};
         });
 
-        std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
+        std::shared_ptr<SubscriptionHandle> handle = sut.subscribeAsync(worker, [&]() {
             before.set_value();
             after.get_future().wait();
         });
@@ -200,19 +200,19 @@ TEST_CASE("asynchronous subscriptions") {
         CHECK(handle->count() == 1);
         after.set_value();
 
-        handle->wait_one();
+        handle->waitOne();
     }
 
     SECTION("Given an asynchronous subscriber When the routine throws Then the exception is rethrown on wait") {
         std::promise<void> before;
         std::promise<void> after;
-        active_object<void> worker;
+        ActiveObject<void> worker;
 
         auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
             return {};
         });
 
-        std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
+        std::shared_ptr<SubscriptionHandle> handle = sut.subscribeAsync(worker, [&]() {
             before.set_value();
             after.get_future().wait();
             throw std::exception();
@@ -224,20 +224,20 @@ TEST_CASE("asynchronous subscriptions") {
         CHECK(handle->count() == 1);
         after.set_value();
 
-        CHECK_THROWS(handle->wait_one());
+        CHECK_THROWS(handle->waitOne());
     }
 
     SECTION("Given an asynchronous subscriber When there are many updates Then they can be checked after") {
         static const int WAIT_FOR = 10;
         std::promise<void> done;
-        active_object<void> worker;
+        ActiveObject<void> worker;
         std::once_flag set_done_once;
 
         auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
             return {s.counter + 1, s.concurrent, s.updated_by};
         });
 
-        std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
+        std::shared_ptr<SubscriptionHandle> handle = sut.subscribeAsync(worker, [&]() {
             if (sut.state<state>().counter < WAIT_FOR) return;
             std::call_once(set_done_once, [&]() { done.set_value(); });
         });
@@ -249,7 +249,7 @@ TEST_CASE("asynchronous subscriptions") {
         CHECK(done.get_future().wait_for(std::chrono::milliseconds(300)) == std::future_status::ready);
 
         CHECK(handle->count() == WAIT_FOR);
-        handle->wait_all();
+        handle->waitAll();
         CHECK(handle->count() == 0);
     }
 }
