@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="180"
+   height="50"
+   viewBox="0 0 180.00000139 50.000001049"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="reducxx.svg"
+   style="enable-background:new">
+  <defs
+     id="defs4">
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter4322">
+      <feBlend
+         inkscape:collect="always"
+         mode="screen"
+         in2="BackgroundImage"
+         id="feBlend4324" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.9624102235"
+     inkscape:cx="109.41416117"
+     inkscape:cy="13.974091236"
+     inkscape:document-units="px"
+     inkscape:current-layer="g4839"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1280"
+     inkscape:window-height="751"
+     inkscape:window-x="0"
+     inkscape:window-y="1"
+     inkscape:window-maximized="1"
+     units="px">
+    <sodipodi:guide
+       position="76.289232315,24.979660469"
+       orientation="0,1"
+       id="guide4930" />
+    <sodipodi:guide
+       position="80.002425036,58.398395421"
+       orientation="1,0"
+       id="guide4932" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Redu"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:inline;opacity:0.989999988;filter:url(#filter4322)"
+     transform="translate(0,-1002.3621605)">
+    <g
+       id="g4839"
+       transform="translate(8.3873936807,-43.61444714)">
+      <g
+         id="g4921"
+         transform="translate(-9.2065672624,801.67965482)">
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#764abc;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="11.06134"
+           y="280.44904"
+           id="text3344"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             id="tspan3346"
+             x="11.06134"
+             y="280.44904"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#764abc;fill-opacity:1">Redu</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#764abc;fill-opacity:0.9921568627;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="117.66853"
+           y="280.80124"
+           id="text4735"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             id="tspan4737"
+             x="117.66853"
+             y="280.80124"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code';fill:#764abc;fill-opacity:0.9921568627">x<tspan
+   style="fill:#000000"
+   id="tspan4739">x</tspan></tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:61.1179466248px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           x="96.713608"
+           y="314.47107"
+           id="text4741"
+           sodipodi:linespacing="125%"
+           transform="scale(1.0862350071,0.92061109563)"><tspan
+             sodipodi:role="line"
+             id="tspan4743"
+             x="96.713608"
+             y="314.47107"
+             style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:'Fira Code';-inkscape-font-specification:'Fira Code Light'">C</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>
