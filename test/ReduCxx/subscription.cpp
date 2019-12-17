@@ -1,5 +1,5 @@
-#include <ReduCxx/store.hpp>
-#include <ReduCxx/action.hpp>
+#include <ReduCxx/Store.hpp>
+#include <ReduCxx/Action.hpp>
 #include "../catch.hpp"
 #include <vector>
 
@@ -13,7 +13,7 @@ SCENARIO("subscriptions") {
         int value;
     };
 
-    class myaction : public ReduCxx::action {
+    class myaction : public ReduCxx::Action {
     public:
         enum TYPE { INCREMENT, DECREMENT };
         myaction(TYPE type) : m_type(type) { }
@@ -22,7 +22,7 @@ SCENARIO("subscriptions") {
         TYPE m_type;
     };
 
-    store<mystate, myaction> sut([](const mystate& state, const myaction& action) {
+    Store<mystate, myaction> sut([](const mystate& state, const myaction& action) {
         mystate newstate = state;
         switch (action.type()) {
             case myaction::INCREMENT: newstate.value++; break;
@@ -31,7 +31,7 @@ SCENARIO("subscriptions") {
         return newstate;
     });
 
-    GIVEN("a store and a subscriber") 
+    GIVEN("a Store and a subscriber")
     WHEN("an event is dispatched") 
     THEN("the subscriber is being called") {
         bool called = false;

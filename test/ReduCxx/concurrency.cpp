@@ -1,4 +1,4 @@
-#include <ReduCxx/store_factory.hpp>
+#include <ReduCxx/StoreFactory.hpp>
 #include <ReduCxx/Async/active_object.hpp>
 #include "../catch.hpp"
 #include <mutex>
@@ -19,7 +19,7 @@ class event { };
 
 SCENARIO("creation and basic features") {
 
-    GIVEN("an async store") 
+    GIVEN("an async Store")
     WHEN("dispatching event") 
     THEN("it is processed on a separated thread") {
         std::chrono::milliseconds interval(500);
@@ -31,11 +31,11 @@ SCENARIO("creation and basic features") {
         auto before_future = before.get_future();
         auto after_future = after.get_future();
 
-        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
             concurrent = before_future.get();           // wait for synchronization [2]
             std::this_thread::sleep_for(interval);
             after.set_value();                          // synchronization [1]
-            return { };
+            return {};
         });
 
         sut.dispatch( {} );
@@ -45,14 +45,14 @@ SCENARIO("creation and basic features") {
         CHECK(concurrent);                              // synchronization [1]
     }
 
-    GIVEN("an async store")
+    GIVEN("an async Store")
     WHEN("the status update throws")
     THEN("the exception is rethrown by the future from dispatch") {
         std::chrono::milliseconds interval(500);
         std::promise<void> before;
         std::promise<void> after;
 
-        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
             before.get_future().get();     // wait for synchronization [2]
             std::this_thread::sleep_for(interval);
             after.set_value();                          // synchronization [1]
@@ -66,7 +66,7 @@ SCENARIO("creation and basic features") {
         CHECK_THROWS(result.get());                              // synchronization [1]
     }
 
-    GIVEN("an async store and a subscribed sync handler")
+    GIVEN("an async Store and a subscribed sync handler")
     WHEN("dispatching event") 
     THEN("the handler runs on the reducer's thread") {
         std::chrono::milliseconds interval(500);
@@ -76,8 +76,8 @@ SCENARIO("creation and basic features") {
 
         std::thread::id main_thread = std::this_thread::get_id();
 
-        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
-            return { 0, true, std::this_thread::get_id() };
+        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+            return {0, true, std::this_thread::get_id()};
         });
 
         sut.subscribe_async(activeObject, [&]() {
@@ -185,8 +185,8 @@ TEST_CASE("asynchronous subscriptions") {
         std::promise<void> after;
         active_object<void> worker;
 
-        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
-            return { };
+        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+            return {};
         });
 
         std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
@@ -208,8 +208,8 @@ TEST_CASE("asynchronous subscriptions") {
         std::promise<void> after;
         active_object<void> worker;
 
-        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
-            return { };
+        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+            return {};
         });
 
         std::shared_ptr<subscription_handle> handle = sut.subscribe_async(worker, [&]() {
@@ -233,7 +233,7 @@ TEST_CASE("asynchronous subscriptions") {
         active_object<void> worker;
         std::once_flag set_done_once;
 
-        auto sut = store_factory<event>::make_async([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
             return {s.counter + 1, s.concurrent, s.updated_by};
         });
 

@@ -1,7 +1,7 @@
 #ifndef ASYNC_STORE_HPP
 #define ASYNC_STORE_HPP
 
-#include "../store.hpp"
+#include "ReduCxx/Store.hpp"
 #include "active_object.hpp"
 #include "subscription_handle.hpp"
 
@@ -13,8 +13,8 @@ namespace ReduCxx {
 }
 
 /**
- * @brief Asynchronous store.
- * This store runs reducers on its own thread and can be used when you need to 
+ * @brief Asynchronous Store.
+ * This Store runs reducers on its own thread and can be used when you need to
  * dispatch state changes from different threads.
  * 
  * Please be aware that reducers shall not access to shared resources.
@@ -59,11 +59,11 @@ public:
     T state();
 
     /**
-     * @brief Add given function or function to the store subscriptions for state change.
+     * @brief Add given function or function to the Store subscriptions for state change.
      * Subscriptions will run on the reducers thread and are then synchronous 
      * to the state change.
      * @note
-     * Due to the fact the @a callback will run on the store thread, you should avoid lengthy, time consuming
+     * Due to the fact the @a callback will run on the Store thread, you should avoid lengthy, time consuming
      * computations here, otherwise the event processing may slow down excessively.
      * Long computations could be moved to another thread with any custom signalling mechanism or you can use
      * a @a ReduCxx::active_object and the @a async_store::subscribe_async function directly.
@@ -74,7 +74,7 @@ public:
     }
 
     /**
-     * @brief Add given function to the store subscriptions for state changes.
+     * @brief Add given function to the Store subscriptions for state changes.
      * Subscriptions will run on the given <i>active object</i>.
      * @return a reference to a heap allocated handle that collect results from each execution
      * of the subscriber, if you are not interested in them, discard or dispose the returned pointer
@@ -84,7 +84,7 @@ public:
     std::shared_ptr<subscription_handle> subscribe_async(active_object<void>& subscriber, const F& op);
 
 private:
-    store<S, A> m_store;
+    Store<S, A> m_store;
     mutable std::mutex m_mutex;
     active_object<void> m_reducer_thread;
 

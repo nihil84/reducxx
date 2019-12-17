@@ -1,5 +1,5 @@
-#ifndef REDUCPP_COMPOSER_HPP
-#define REDUCPP_COMPOSER_HPP
+#ifndef REDUCXX_COMPOSER_HPP
+#define REDUCXX_COMPOSER_HPP
 
 #include <tuple>
 #include <utility>
@@ -8,21 +8,21 @@
 namespace ReduCxx
 {
     template <class A, class... Reducers>
-    class composer;
+    class Composer;
 
     template <class A>
-    struct reduce;
+    struct Reduce;
 } // namespace ReduCxx
 
 //! @internal
 template <class A, class... Reducers>
-class ReduCxx::composer
+class ReduCxx::Composer
 {
   public:
     using ReducersTuple = std::tuple<std::decay_t<Reducers>...>;
     using CompositeState = std::tuple<typename ReduCxx::_impl::reducer_traits<Reducers>::state_t...>;
 
-    composer(const Reducers &... reducers)
+    Composer(const Reducers &... reducers)
         : m_reducers(reducers...) {}
 
     CompositeState operator()(const CompositeState &state, const A &action)
@@ -41,13 +41,13 @@ class ReduCxx::composer
 };
 
 template <class A>
-struct ReduCxx::reduce
+struct ReduCxx::Reduce
 {
     template <class... Reducers>
-    static inline composer<A, Reducers...> with(Reducers... reducers)
+    static inline Composer<A, Reducers...> with(Reducers... reducers)
     {
-        return composer<A, Reducers...>(reducers...);
+        return Composer<A, Reducers...>(reducers...);
     }
 };
 
-#endif // REDUCPP_COMPOSER_HPP
+#endif //REDUCXX_COMPOSER_HPP

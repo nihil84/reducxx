@@ -1,8 +1,8 @@
-#ifndef REDUCPP_STORE_H
-#define REDUCPP_STORE_H
+#ifndef REDUCXX_STORE_HPP
+#define REDUCXX_STORE_HPP
 
-#include "composer.hpp"
-#include "store_subscriptions_error.hpp"
+#include "Composer.hpp"
+#include "StoreSubscriptionsError.hpp"
 #include <functional>
 #include <list>
 #include <vector>
@@ -11,30 +11,30 @@
 namespace ReduCxx
 {
     template <class S, class A>
-    class store;
+    class Store;
 }
 
 /**
- * @brief Plain/basic ReduCpp store with no concurrency support.
+ * @brief Plain/basic ReduCpp Store with no concurrency support.
  */
 template <class S, class A>
-class ReduCxx::store
+class ReduCxx::Store
 {
   public:
     typedef std::function<S(const S &, const A &)> reducer_t;
     typedef std::function<void()> callback_t;
 
     template <class F>
-    explicit store(const F& reducer) : m_reducer(reducer)
+    explicit Store(const F& reducer) : m_reducer(reducer)
     {
         m_history.push_back(S());
     }
 
-    //! Move constructor (used for store_factory facilities)
-    store(store&& temp) noexcept; 
+    //! Move constructor (used for StoreFactory facilities)
+    Store(Store&& temp) noexcept;
 
-    store(const store&) = delete;
-    store& operator=(const store&) = delete;
+    Store(const Store&) = delete;
+    Store& operator=(const Store&) = delete;
 
     //! @brief Return a read-only reference to current state
     virtual const S& state() const { return m_history.back(); }
@@ -64,7 +64,7 @@ class ReduCxx::store
     { m_subscriptions.push_back(callback); }
 
   protected:
-    void perform_callbacks();
+    void performCallbacks();
 
   private:
     const reducer_t m_reducer;
@@ -73,21 +73,21 @@ class ReduCxx::store
 };
 
 template <class S, class A>
-ReduCxx::store<S, A>::store(store&& temp) noexcept
+ReduCxx::Store<S, A>::Store(Store&& temp) noexcept
     : m_reducer(std::move(temp.m_reducer))
     , m_history(std::move(temp.m_history))
     , m_subscriptions(std::move(temp.m_subscriptions))
 { }
 
 template <class S, class A>
-void ReduCxx::store<S, A>::dispatch(const A& action)
+void ReduCxx::Store<S, A>::dispatch(const A& action)
 {
     m_history.push_back(m_reducer(m_history.back(), action));
-    perform_callbacks();
+    performCallbacks();
 }
 
 template <class S, class A>
-bool ReduCxx::store<S, A>::revert()
+bool ReduCxx::Store<S, A>::revert()
 {
     if (m_history.size() == 1)
     {
@@ -101,9 +101,9 @@ bool ReduCxx::store<S, A>::revert()
 }
 
 template <class S, class A>
-void ReduCxx::store<S, A>::perform_callbacks()
+void ReduCxx::Store<S, A>::performCallbacks()
 {
-    std::vector<store_subscriptions_error::error> exceptions;
+    std::vector<StoreSubscriptionsError::error> exceptions;
     int idx = 0;
     for (const callback_t& callback : m_subscriptions)
     {
@@ -120,8 +120,8 @@ void ReduCxx::store<S, A>::perform_callbacks()
 
     if (!exceptions.empty())
     {
-        throw store_subscriptions_error(std::move(exceptions));
+        throw StoreSubscriptionsError(std::move(exceptions));
     }
 }
 
-#endif // REDUCPP_STORE_H
+#endif //REDUCXX_STORE_HPP

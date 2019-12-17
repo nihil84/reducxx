@@ -1,10 +1,9 @@
-#ifndef REDUCPP_REDUCER_TRAITS_HPP
-#define REDUCPP_REDUCER_TRAITS_HPP
+#ifndef REDUCXX_REDUCER_TRAITS_HPP
+#define REDUCXX_REDUCER_TRAITS_HPP
 
 #include <functional>
 
-namespace ReduCxx {
-namespace _impl {
+namespace ReduCxx::_impl {
 
 template<class F>
 struct reducer_traits;
@@ -57,7 +56,7 @@ struct reducer_traits<std::_Binder<std::_Unforced, S(__thiscall T::*)(const S&, 
 {};
 
 
-}}
+}
 
 
-#endif // REDUCPP_REDUCER_TRAITS_HPP
+#endif //REDUCXX_REDUCER_TRAITS_HPP

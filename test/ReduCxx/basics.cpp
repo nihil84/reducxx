@@ -1,5 +1,5 @@
-#include <ReduCxx/store.hpp>
-#include <ReduCxx/action.hpp>
+#include <ReduCxx/Store.hpp>
+#include <ReduCxx/Action.hpp>
 #include "../catch.hpp"
 
 using namespace ReduCxx;
@@ -12,7 +12,7 @@ SCENARIO("basic functionality")
         int value;
     };
 
-    class myaction : public ReduCxx::action
+    class myaction : public ReduCxx::Action
     {
       public:
         enum TYPE
@@ -28,7 +28,7 @@ SCENARIO("basic functionality")
         TYPE m_type;
     };
 
-    store<mystate, myaction> sut([](const mystate &state, const myaction &action) {
+    Store<mystate, myaction> sut([](const mystate &state, const myaction &action) {
         mystate newstate = state;
         switch (action.type())
         {
@@ -44,7 +44,7 @@ SCENARIO("basic functionality")
         return newstate;
     });
 
-    GIVEN("a store")
+    GIVEN("a Store")
     WHEN("dispatching an event")
     THEN("the state is updated")
     {
@@ -57,7 +57,7 @@ SCENARIO("basic functionality")
         CHECK(sut.state().value == 1);
     }
 
-    GIVEN("a store with an history of N actions")
+    GIVEN("a Store with an history of N actions")
     WHEN("reverting")
     THEN("the state is rolled-back")
     {
@@ -79,7 +79,7 @@ SCENARIO("basic functionality")
         CHECK(sut.state().value == 0);
     }
 
-    GIVEN("a store")
+    GIVEN("a Store")
     WHEN("the reducer throws")
     THEN("the state is not updated")
     {
@@ -90,7 +90,7 @@ SCENARIO("basic functionality")
         CHECK(sut.state().value == 1);
     }
 
-    GIVEN("a store")
+    GIVEN("a Store")
     WHEN("a subscriber throws")
     THEN("state is correctly updated and following subscribers run anyway")
     {
@@ -103,7 +103,7 @@ SCENARIO("basic functionality")
         {
             sut.dispatch( { myaction::INCREMENT });
         }
-        catch (ReduCxx::store_subscriptions_error& ex)
+        catch (ReduCxx::StoreSubscriptionsError& ex)
         {
             CHECK(ex.errors().size() == 1);
             CHECK(ex.errors()[0].first == 0);

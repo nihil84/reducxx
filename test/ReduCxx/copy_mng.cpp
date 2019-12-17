@@ -1,5 +1,5 @@
-#include <ReduCxx/store.hpp>
-#include <ReduCxx/action.hpp>
+#include <ReduCxx/Store.hpp>
+#include <ReduCxx/Action.hpp>
 #include "../catch.hpp"
 
 using namespace std;

@@ -1,17 +1,17 @@
-#include <ReduCxx/action.hpp>
-#include <ReduCxx/store_factory.hpp>
+#include <ReduCxx/Action.hpp>
+#include <ReduCxx/StoreFactory.hpp>
 #include "../catch.hpp"
 #include <vector>
 
 using namespace ReduCxx;
 
 
-// interface ReduCxx::action is only a guideline (supports any type of action)
-class myaction : public action {
+// interface ReduCxx::Action is only a guideline (supports any type of action)
+class myaction : public Action {
 public:
     enum TYPE { INCREMENT, DECREMENT };
-    myaction(TYPE type) : m_type(type) { }
-    int type() const { return m_type; }
+    myaction(TYPE type) : m_type(type) { } // NOLINT(google-explicit-constructor)
+    [[nodiscard]] int type() const override { return m_type; }
 private:
     TYPE m_type;
 };    
@@ -58,26 +58,26 @@ int reducer_that_throws(const int& state, const myaction& action)
     return state+1;
 }
 
-TEST_CASE("composite store usage example") 
+TEST_CASE("composite Store usage example")
 {
     mystate2 instance;
     auto member_fun = std::bind(&mystate2::reducer, &instance, std::placeholders::_1, std::placeholders::_2);
 
     std::function<mystate1(const mystate1&, const myaction&)> dummy(dummy_reducer);
 
-//    auto reducers = reduce<myaction>::with(dummy, member_fun, nop_reducer);
-//    store<std::tuple<mystate1, mystate2, mystate3>, myaction> sut(reducers);
-    // short way (leverage template deduction to avoid to write the verbose type of the store)
-    auto sut = store_factory<myaction>::make(
+//    auto reducers = Reduce<myaction>::with(dummy, member_fun, nop_reducer);
+//    Store<std::tuple<mystate1, mystate2, mystate3>, myaction> sut(reducers);
+    // short way (leverage template deduction to avoid to write the verbose type of the Store)
+    auto sut = StoreFactory<myaction>::make(
         dummy,          // functor from STL -> mystate1
         member_fun,     // standard binder result -> mystate2
         nop_reducer     // plain old C-style function pointer -> mystate3
         // also supports lambdas: another way to use a member function as reducer is the following
-        // [&](const mystate2& state, const myaction& action)  { return instance.reducer(state, action); }
+        // [&](const mystate2& state, const myaction& Action)  { return instance.reducer(state, Action); }
     );   
 
     CHECK(sut.state<mystate1>().value == 0);        // access via state type only works if there is
-    CHECK(sut.state<mystate2>().value == 0);        // only one instance of given type per store
+    CHECK(sut.state<mystate2>().value == 0);        // only one instance of given type per Store
     CHECK(sut.state<mystate3>().ints.size() == 0);  // (pretty common case anyway)
     sut.dispatch( { myaction::DECREMENT } );
     CHECK(sut.state<0>().value == -1);              // access via index always works:
@@ -91,7 +91,7 @@ TEST_CASE("lambdas")
     mystate2 instance;
     std::function<mystate1(const mystate1&, const myaction&)> dummy(dummy_reducer);
 
-    auto sut = store_factory<myaction>::make(
+    auto sut = StoreFactory<myaction>::make(
             [&](const mystate2& state, const myaction& action)  { return instance.reducer(state, action); },
             nop_reducer
     );
@@ -105,14 +105,14 @@ TEST_CASE("lambdas")
 
 SCENARIO("behavioural checks")
 {
-    GIVEN("a composite store")
+    GIVEN("a composite Store")
     WHEN("a reducer throws")
     THEN("whole state is not updated")
     {
-        // store dispatch works as a transaction: if any of the reducers throws, the state is not updated (and no 
+        // Store dispatch works as a transaction: if any of the reducers throws, the state is not updated (and no
         // subscriber is notified).
 
-        auto sut = store_factory<myaction>::make(dummy_reducer, reducer_that_throws);
+        auto sut = StoreFactory<myaction>::make(dummy_reducer, reducer_that_throws);
         CHECK(sut.state<mystate1>().value == 0);
         CHECK(sut.state<int>() == 0);
         sut.dispatch( { myaction::INCREMENT });
