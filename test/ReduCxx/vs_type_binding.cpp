@@ -1,30 +1,30 @@
 #if defined _MSC_VER  // MS Visual Studio
 
 
-#include <ReduCxx/reducer_traits.hpp>
+#include <ReduCxx/ReducerTraits.hpp>
 #include "../catch.hpp"
 #include <iostream>
 
 using namespace std;
 
 template<class F>
-struct vs_reducer_traits;
+struct VsReducerTraits;
 
 template<class S, class A>
-struct vs_reducer_traits<S(const S&, const A&)>
+struct VsReducerTraits<S(const S&, const A&)>
 {
-    typedef A action_t;
-    typedef S state_t;
+    typedef A Action_t;
+    typedef S State_t;
 };
 
 template<typename T, typename S, typename A, typename ...FArgs>
-struct vs_reducer_traits<std::_Binder<std::_Unforced, S(__cdecl T::*)(const S&, const A&), FArgs ...>>
-: vs_reducer_traits<S(const S&, const A&)>
+struct VsReducerTraits<std::_Binder<std::_Unforced, S(__cdecl T::*)(const S&, const A&), FArgs ...>>
+: VsReducerTraits<S(const S&, const A&)>
 {};
 
 template<typename T, typename S, typename A, typename ...FArgs>
-struct vs_reducer_traits<std::_Binder<std::_Unforced, S(__thiscall T::*)(const S&, const A&), FArgs ...>>
-        : vs_reducer_traits<S(const S&, const A&)>
+struct VsReducerTraits<std::_Binder<std::_Unforced, S(__thiscall T::*)(const S&, const A&), FArgs ...>>
+        : VsReducerTraits<S(const S&, const A&)>
 {};
 
 
@@ -35,7 +35,7 @@ public:
 
 template <class T>
 struct Tool {
-    using CompositeState = typename vs_reducer_traits<T>::state_t;
+    using CompositeState = typename VsReducerTraits<T>::State_t;
 };
 
 template <class T>

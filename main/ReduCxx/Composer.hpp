@@ -3,7 +3,7 @@
 
 #include <tuple>
 #include <utility>
-#include "reducer_traits.hpp"
+#include "ReducerTraits.hpp"
 
 namespace ReduCxx
 {
@@ -20,7 +20,7 @@ class ReduCxx::Composer
 {
   public:
     using ReducersTuple = std::tuple<std::decay_t<Reducers>...>;
-    using CompositeState = std::tuple<typename ReduCxx::_impl::reducer_traits<Reducers>::state_t...>;
+    using CompositeState = std::tuple<typename ReduCxx::_impl::ReducerTraits<Reducers>::State_t...>;
 
     Composer(const Reducers &... reducers)
         : m_reducers(reducers...) {}
