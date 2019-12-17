@@ -62,6 +62,11 @@ public:
      * @brief Add given function or function to the store subscriptions for state change.
      * Subscriptions will run on the reducers thread and are then synchronous 
      * to the state change.
+     * @note
+     * Due to the fact the @a callback will run on the store thread, you should avoid lengthy, time consuming
+     * computations here, otherwise the event processing may slow down excessively.
+     * Long computations could be moved to another thread with any custom signalling mechanism or you can use
+     * a @a reducpp::active_object and the @a async_store::subscribe_async function directly.
      */ 
     template <class F>
     void subscribe_sync(const F& callback) {

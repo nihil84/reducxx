@@ -1,6 +1,5 @@
 #include <reducpp/store_factory.hpp>
 #include <reducpp/async/active_object.hpp>
-#include <reducpp/action.hpp>
 #include "../catch.hpp"
 #include <mutex>
 #include <chrono>
