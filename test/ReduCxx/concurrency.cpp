@@ -8,7 +8,7 @@
 
 using namespace ReduCxx;
 
-struct state {
+struct State {
     int counter = 0;
     bool concurrent = false;
     std::thread::id updated_by;
@@ -31,7 +31,7 @@ SCENARIO("creation and basic features") {
         auto before_future = before.get_future();
         auto after_future = after.get_future();
 
-        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const State& s, const event& e) -> State {
             concurrent = before_future.get();           // wait for synchronization [2]
             std::this_thread::sleep_for(interval);
             after.set_value();                          // synchronization [1]
@@ -52,7 +52,7 @@ SCENARIO("creation and basic features") {
         std::promise<void> before;
         std::promise<void> after;
 
-        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const State& s, const event& e) -> State {
             before.get_future().get();     // wait for synchronization [2]
             std::this_thread::sleep_for(interval);
             after.set_value();                          // synchronization [1]
@@ -76,7 +76,7 @@ SCENARIO("creation and basic features") {
 
         std::thread::id main_thread = std::this_thread::get_id();
 
-        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const State& s, const event& e) -> State {
             return {0, true, std::this_thread::get_id()};
         });
 
@@ -84,7 +84,7 @@ SCENARIO("creation and basic features") {
             before.get_future().wait();
             std::thread::id subscriber_thread = std::this_thread::get_id();
             REQUIRE(main_thread != subscriber_thread);
-            REQUIRE(sut.state<state>().updated_by != subscriber_thread);
+            REQUIRE(sut.state<State>().updated_by != subscriber_thread);
             after.set_value();
         });
 
@@ -93,7 +93,7 @@ SCENARIO("creation and basic features") {
         before.set_value();
         after.get_future().wait();
 
-        REQUIRE(main_thread != sut.state<state>().updated_by);
+        REQUIRE(main_thread != sut.state<State>().updated_by);
     }
 }
 
@@ -180,12 +180,12 @@ SCENARIO("active object subsystem") {
 
 TEST_CASE("asynchronous subscriptions") {
 
-    SECTION("Given an asynchronous subscriber When state is update Then the subscriber is notified") {
+    SECTION("Given an asynchronous subscriber When State is update Then the subscriber is notified") {
         std::promise<void> before;
         std::promise<void> after;
         ActiveObject<void> worker;
 
-        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const State& s, const event& e) -> State {
             return {};
         });
 
@@ -208,7 +208,7 @@ TEST_CASE("asynchronous subscriptions") {
         std::promise<void> after;
         ActiveObject<void> worker;
 
-        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const State& s, const event& e) -> State {
             return {};
         });
 
@@ -233,12 +233,12 @@ TEST_CASE("asynchronous subscriptions") {
         ActiveObject<void> worker;
         std::once_flag set_done_once;
 
-        auto sut = StoreFactory<event>::makeAsync([&](const state& s, const event& e) -> state {
+        auto sut = StoreFactory<event>::makeAsync([&](const State& s, const event& e) -> State {
             return {s.counter + 1, s.concurrent, s.updated_by};
         });
 
         std::shared_ptr<SubscriptionHandle> handle = sut.subscribeAsync(worker, [&]() {
-            if (sut.state<state>().counter < WAIT_FOR) return;
+            if (sut.state<State>().counter < WAIT_FOR) return;
             std::call_once(set_done_once, [&]() { done.set_value(); });
         });
 

@@ -6,13 +6,12 @@ using namespace ReduCxx;
 
 SCENARIO("basic functionality")
 {
-
-    struct mystate
+    struct MyState
     {
         int value;
     };
 
-    class myaction : public ReduCxx::Action
+    class MyAction : public ReduCxx::Action
     {
       public:
         enum TYPE
@@ -21,24 +20,24 @@ SCENARIO("basic functionality")
             DECREMENT,
             THROW
         };
-        myaction(TYPE type) : m_type(type) {}
-        int type() const { return m_type; }
+        MyAction(TYPE type) : m_type(type) {} // NOLINT(google-explicit-constructor)
+        [[nodiscard]] int type() const override { return m_type; }
 
       private:
         TYPE m_type;
     };
 
-    Store<mystate, myaction> sut([](const mystate &state, const myaction &action) {
-        mystate newstate = state;
+    Store<MyState, MyAction> sut([](const MyState &state, const MyAction &action) {
+        MyState newstate = state;
         switch (action.type())
         {
-        case myaction::INCREMENT:
+        case MyAction::INCREMENT:
             newstate.value++;
             break;
-        case myaction::DECREMENT:
+        case MyAction::DECREMENT:
             newstate.value--;
             break;
-        case myaction::THROW:
+        case MyAction::THROW:
             throw "error";
         }
         return newstate;
@@ -46,27 +45,27 @@ SCENARIO("basic functionality")
 
     GIVEN("a Store")
     WHEN("dispatching an event")
-    THEN("the state is updated")
+    THEN("the State is updated")
     {
         CHECK(sut.state().value == 0);
-        sut.dispatch(myaction(myaction::INCREMENT));
+        sut.dispatch(MyAction(MyAction::INCREMENT));
         CHECK(sut.state().value == 1);
-        sut.dispatch(myaction(myaction::INCREMENT));
+        sut.dispatch(MyAction(MyAction::INCREMENT));
         CHECK(sut.state().value == 2);
-        sut.dispatch(myaction(myaction::DECREMENT));
+        sut.dispatch(MyAction(MyAction::DECREMENT));
         CHECK(sut.state().value == 1);
     }
 
     GIVEN("a Store with an history of N actions")
     WHEN("reverting")
-    THEN("the state is rolled-back")
+    THEN("the State is rolled-back")
     {
         CHECK(sut.state().value == 0);
-        sut.dispatch(myaction(myaction::INCREMENT));
-        sut.dispatch(myaction(myaction::INCREMENT));
-        sut.dispatch(myaction(myaction::INCREMENT));
-        sut.dispatch(myaction(myaction::INCREMENT));
-        sut.dispatch(myaction(myaction::INCREMENT));
+        sut.dispatch(MyAction(MyAction::INCREMENT));
+        sut.dispatch(MyAction(MyAction::INCREMENT));
+        sut.dispatch(MyAction(MyAction::INCREMENT));
+        sut.dispatch(MyAction(MyAction::INCREMENT));
+        sut.dispatch(MyAction(MyAction::INCREMENT));
         CHECK(sut.state().value == 5);
         CHECK(sut.revert());
         CHECK(sut.revert());
@@ -81,18 +80,18 @@ SCENARIO("basic functionality")
 
     GIVEN("a Store")
     WHEN("the reducer throws")
-    THEN("the state is not updated")
+    THEN("the State is not updated")
     {
         CHECK(sut.state().value == 0);
-        sut.dispatch( { myaction::INCREMENT });
+        sut.dispatch( {MyAction::INCREMENT });
         CHECK(sut.state().value == 1);
-        CHECK_THROWS(sut.dispatch( { myaction::THROW } ));
+        CHECK_THROWS(sut.dispatch( {MyAction::THROW } ));
         CHECK(sut.state().value == 1);
     }
 
     GIVEN("a Store")
     WHEN("a subscriber throws")
-    THEN("state is correctly updated and following subscribers run anyway")
+    THEN("State is correctly updated and following subscribers run anyway")
     {
         bool run_anyway = false;
         bool got_exception = false;
@@ -101,7 +100,7 @@ SCENARIO("basic functionality")
         sut.subscribe( [&]() { run_anyway = true; });
         try 
         {
-            sut.dispatch( { myaction::INCREMENT });
+            sut.dispatch( {MyAction::INCREMENT });
         }
         catch (ReduCxx::StoreSubscriptionsError& ex)
         {
